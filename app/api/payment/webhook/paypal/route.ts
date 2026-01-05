@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const transmissionTime = request.headers.get("paypal-transmission-time");
     const certUrl = request.headers.get("paypal-cert-url");
 
-    if (\!transmissionId || \!transmissionSig || \!transmissionTime || \!certUrl) {
+    if (!transmissionId || !transmissionSig || !transmissionTime || !certUrl) {
       return NextResponse.json({ error: "Missing headers" }, { status: 400 });
     }
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       certUrl
     );
 
-    if (\!isValid) {
+    if (!isValid) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 

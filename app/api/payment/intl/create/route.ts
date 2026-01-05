@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const paymentType = data.paymentType;
     const days = data.days;
 
-    if (\!provider || \!amount || \!currency || \!userId) {
+    if (!provider || !amount || !currency || !userId) {
       return NextResponse.json(
         { success: false, error: "缺少必要参数" },
         { status: 400 }
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (\!result.success) {
+    if (!result.success) {
       return NextResponse.json(
         { success: false, error: result.error },
         { status: 500 }
