@@ -1,0 +1,14 @@
+node_modules
+.next
+.DS_Store
+.env.local
+.env
+/mvp_25-main/.env.local
+nul
+
+# Environment variables
+**/.env.local
+.env*
+.env.local
+mvp_25-main/.env.local
+mvp_25-main/.env.local
