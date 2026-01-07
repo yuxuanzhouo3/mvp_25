@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SkillAssessment } from "@/components/skill-assessment"
 import { RoleClassification } from "@/components/role-classification"
 import { CompetitivenessReport } from "@/components/competitiveness-report"
@@ -13,9 +13,10 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Crown, Share2, TrendingUp, Brain, GraduationCap, Sparkles, ArrowRight } from "lucide-react"
+import { Crown, Share2, TrendingUp, Brain, GraduationCap, Sparkles, ArrowRight, Loader2, User } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AiCoachModal } from "@/components/ai-coach-modal"
+import { useAuth } from "@/components/auth/auth-provider"
 
 interface UserSkills {
   [category: string]: {
@@ -36,6 +37,7 @@ interface UserProfile {
 
 export default function HomePage() {
   const router = useRouter()
+  const { isAuthenticated, isLoading, user } = useAuth()
   const [currentStep, setCurrentStep] = useState<"assessment" | "results" | "paths">("assessment")
   const [userSkills, setUserSkills] = useState<UserSkills>({})
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -54,6 +56,41 @@ export default function HomePage() {
   const [aiCoachSessions, setAiCoachSessions] = useState(0) // 免费用户3次体验
   const [showAiCoach, setShowAiCoach] = useState(false)
   const [isMonitoring, setIsMonitoring] = useState(false)
+
+  // 认证检查：未登录时重定向到登录页
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login")
+    }
+  }, [isLoading, isAuthenticated, router])
+
+  // 当用户信息加载完成后，更新 userProfile
+  useEffect(() => {
+    if (user) {
+      setUserProfile((prev) => ({
+        ...prev,
+        id: user.id || prev.id,
+        name: user.displayName || user.email?.split("@")[0] || prev.name,
+      }))
+    }
+  }, [user])
+
+  // 加载中显示骨架屏
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-400 mx-auto mb-4" />
+          <p className="text-slate-400">加载中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 未登录时返回 null（等待重定向）
+  if (!isAuthenticated) {
+    return null
+  }
 
   const handleAssessmentComplete = (skills: UserSkills, role: string, score: number) => {
     setUserSkills(skills)
@@ -148,6 +185,14 @@ export default function HomePage() {
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 分享成果
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => router.push("/profile")}
+                className="w-10 h-10 rounded-full p-0 bg-slate-700 hover:bg-slate-600"
+                title="个人中心"
+              >
+                <User className="w-5 h-5 text-slate-300" />
               </Button>
             </div>
           </div>
