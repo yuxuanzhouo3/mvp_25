@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,12 +15,21 @@ interface UpgradeModalProps {
 }
 
 export function UpgradeModal({ isOpen, onClose, onUpgradeSuccess, currentRole }: UpgradeModalProps) {
+  const router = useRouter()
+
   const handleUpgrade = () => {
-    // Simulate payment processing
-    setTimeout(() => {
-      onUpgradeSuccess()
-      alert("升级成功！欢迎使用Premium功能！")
-    }, 1000)
+    // Determine region and redirect to appropriate payment page
+    const region = process.env.NEXT_PUBLIC_DEPLOYMENT_REGION || "INTL"
+
+    if (region === "CN") {
+      // Chinese region - redirect to Chinese payment page
+      router.push("/payment")
+    } else {
+      // International region - redirect to international payment page (Stripe/PayPal)
+      router.push("/payment/intl")
+    }
+
+    onClose()
   }
 
   const freeFeatures = ["多维度技能评估", "角色智能分类", "竞争力分析报告", "技能热力图", "基础学习建议"]

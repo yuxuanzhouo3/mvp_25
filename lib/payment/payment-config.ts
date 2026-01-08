@@ -4,7 +4,8 @@
  */
 
 export type BillingCycle = "monthly" | "yearly";
-export type PaymentMethod = "wechat" | "alipay";
+export type PaymentMethod = "wechat" | "alipay" | "stripe" | "paypal";
+export type Currency = "CNY" | "USD";
 
 /**
  * 定价表（唯一的价格定义来源）
@@ -13,6 +14,12 @@ const PRICING_DATA = {
   CNY: {
     monthly: 29.9,
     yearly: 299,
+    symbol: "¥",
+  },
+  USD: {
+    monthly: 4.99,
+    yearly: 49.99,
+    symbol: "$",
   },
 } as const;
 
@@ -25,10 +32,13 @@ export const PRICING_TABLE = PRICING_DATA;
  * 根据支付方式获取定价信息
  */
 export function getPricingByMethod(method: PaymentMethod) {
+  const isIntl = method === "stripe" || method === "paypal";
+  const currency = isIntl ? "USD" : "CNY";
   return {
-    currency: "CNY",
-    monthly: PRICING_DATA.CNY.monthly,
-    yearly: PRICING_DATA.CNY.yearly,
+    currency,
+    monthly: PRICING_DATA[currency].monthly,
+    yearly: PRICING_DATA[currency].yearly,
+    symbol: PRICING_DATA[currency].symbol,
   };
 }
 
@@ -36,10 +46,10 @@ export function getPricingByMethod(method: PaymentMethod) {
  * 根据货币类型和账单周期获取金额
  */
 export function getAmountByCurrency(
-  currency: string,
+  currency: Currency,
   billingCycle: BillingCycle
 ): number {
-  const prices = PRICING_DATA[currency as keyof typeof PRICING_DATA];
+  const prices = PRICING_DATA[currency];
   return prices ? prices[billingCycle] : 0;
 }
 
@@ -53,15 +63,16 @@ export function getDaysByBillingCycle(billingCycle: BillingCycle): number {
 /**
  * 获取支付货币
  */
-export function getPaymentCurrency(): string {
-  return "CNY";
+export function getPaymentCurrency(isIntl: boolean = false): Currency {
+  return isIntl ? "USD" : "CNY";
 }
 
 /**
  * 格式化金额显示
  */
-export function formatAmount(amount: number): string {
-  return `¥${amount.toFixed(2)}`;
+export function formatAmount(amount: number, currency: Currency = "CNY"): string {
+  const symbol = PRICING_DATA[currency].symbol;
+  return `${symbol}${amount.toFixed(2)}`;
 }
 
 /**

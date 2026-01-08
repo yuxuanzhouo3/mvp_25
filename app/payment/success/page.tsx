@@ -1,40 +1,97 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ArrowRight, Loader2 } from "lucide-react";
+import { CheckCircle, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 
 function PaymentSuccessContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showContent, setShowContent] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<"pending" | "success" | "error">("pending");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Get session_id from URL (Stripe) or token (PayPal)
+  const sessionId = searchParams.get("session_id");
+  const paypalToken = searchParams.get("token");
 
   useEffect(() => {
-    // 延迟显示内容以配合动画
-    const timer = setTimeout(() => {
-      setShowContent(true);
-    }, 100);
+    const verifyPayment = async () => {
+      // If there's a session_id (Stripe) or token (PayPal), verify the payment
+      if (sessionId || paypalToken) {
+        setIsVerifying(true);
+        try {
+          // For Stripe payments, the webhook handles activation
+          // Here we just confirm the session exists
+          if (sessionId) {
+            // Stripe webhook handles the activation, just show success
+            setVerificationStatus("success");
+          } else if (paypalToken) {
+            // PayPal: capture the payment
+            const response = await fetch("/api/payment/intl/capture", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                provider: "paypal",
+                token: paypalToken,
+              }),
+            });
 
-    // 播放庆祝动画（动态导入避免 SSR 问题）
-    const celebration = setTimeout(async () => {
-      try {
-        const confetti = (await import("canvas-confetti")).default;
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      } catch (e) {
-        // 忽略 confetti 错误
+            if (response.ok) {
+              setVerificationStatus("success");
+            } else {
+              const data = await response.json();
+              setVerificationStatus("error");
+              setErrorMessage(data.error || "Payment verification failed");
+            }
+          }
+        } catch (error: any) {
+          setVerificationStatus("error");
+          setErrorMessage(error.message || "Failed to verify payment");
+        } finally {
+          setIsVerifying(false);
+        }
+      } else {
+        // No session_id or token, assume direct success (from CN payment or webhook)
+        setVerificationStatus("success");
       }
-    }, 300);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(celebration);
     };
-  }, []);
+
+    verifyPayment();
+  }, [sessionId, paypalToken]);
+
+  useEffect(() => {
+    if (verificationStatus === "success") {
+      // Delay to show content with animation
+      const timer = setTimeout(() => {
+        setShowContent(true);
+      }, 100);
+
+      // Play celebration animation
+      const celebration = setTimeout(async () => {
+        try {
+          const confetti = (await import("canvas-confetti")).default;
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+          });
+        } catch (e) {
+          // Ignore confetti errors
+        }
+      }, 300);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(celebration);
+      };
+    }
+  }, [verificationStatus]);
 
   const handleGoHome = () => {
     router.push("/");
@@ -44,6 +101,45 @@ function PaymentSuccessContent() {
     router.push("/assessment");
   };
 
+  // Loading state
+  if (isVerifying) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardContent className="py-12 text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-lg font-medium">Verifying your payment...</p>
+          <p className="text-sm text-muted-foreground mt-2">Please wait a moment</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Error state
+  if (verificationStatus === "error") {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <AlertCircle className="w-10 h-10 text-red-600" />
+          </div>
+          <CardTitle className="text-2xl text-red-600">Payment Verification Failed</CardTitle>
+          <CardDescription>
+            {errorMessage || "We couldn't verify your payment. Please contact support."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button variant="outline" className="w-full" onClick={() => router.push("/payment/intl")}>
+            Try Again
+          </Button>
+          <Button variant="outline" className="w-full" onClick={handleGoHome}>
+            Return Home
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Success state
   return (
     <Card className={`w-full max-w-md transition-all duration-500 ${
       showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
@@ -52,50 +148,50 @@ function PaymentSuccessContent() {
         <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
           <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
-        <CardTitle className="text-2xl text-green-600">支付成功！</CardTitle>
+        <CardTitle className="text-2xl text-green-600">Payment Successful!</CardTitle>
         <CardDescription>
-          感谢您的支持，您的会员已激活
+          Thank you for your support. Your membership is now active.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* 会员信息 */}
+        {/* Membership Info */}
         <div className="p-4 bg-muted rounded-lg space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">会员状态</span>
-            <span className="text-sm font-medium text-green-600">已激活</span>
+            <span className="text-sm text-muted-foreground">Membership Status</span>
+            <span className="text-sm font-medium text-green-600">Active</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">会员类型</span>
-            <span className="text-sm font-medium">AI教师助手会员</span>
+            <span className="text-sm text-muted-foreground">Plan</span>
+            <span className="text-sm font-medium">Premium</span>
           </div>
         </div>
 
-        {/* 权益提示 */}
+        {/* Benefits */}
         <div className="text-center text-sm text-muted-foreground">
-          <p>您现在可以享受以下权益：</p>
+          <p>You now have access to:</p>
           <ul className="mt-2 space-y-1">
-            <li>✓ 无限次 AI 出题</li>
-            <li>✓ 智能组卷功能</li>
-            <li>✓ 题目难度分析</li>
-            <li>✓ 个性化教学建议</li>
+            <li>✓ Unlimited AI Question Generation</li>
+            <li>✓ Smart Paper Composition</li>
+            <li>✓ Difficulty Analysis</li>
+            <li>✓ Personalized Teaching Suggestions</li>
           </ul>
         </div>
 
-        {/* 按钮 */}
+        {/* Buttons */}
         <div className="space-y-3">
           <Button className="w-full" onClick={handleStartUsing}>
-            开始使用
+            Start Using
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           <Button variant="outline" className="w-full" onClick={handleGoHome}>
-            返回首页
+            Return Home
           </Button>
         </div>
 
-        {/* 客服提示 */}
+        {/* Support Note */}
         <p className="text-xs text-center text-muted-foreground">
-          如有任何问题，请联系客服支持
+          If you have any questions, please contact our support team.
         </p>
       </CardContent>
     </Card>

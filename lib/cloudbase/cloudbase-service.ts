@@ -182,11 +182,29 @@ export async function signupUser(
     // 加密密码
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 生成默认头像 (基于用户名首字母的 SVG)
+    const displayName = name || email.split("@")[0];
+    const initial = displayName.charAt(0).toUpperCase();
+    const colors = [
+      "#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#ec4899",
+      "#f43f5e", "#ef4444", "#f97316", "#eab308", "#22c55e",
+      "#14b8a6", "#06b6d4", "#0ea5e9", "#3b82f6", "#6366f1"
+    ];
+    const colorIndex = email.charCodeAt(0) % colors.length;
+    const bgColor = colors[colorIndex];
+    const defaultAvatar = `data:image/svg+xml,${encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="${bgColor}"/>
+        <text x="50" y="50" font-family="Arial,sans-serif" font-size="45" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="central">${initial}</text>
+      </svg>`
+    )}`;
+
     // 创建用户
     const newUser = {
       email,
       password: hashedPassword,
-      name: name || email.split("@")[0],
+      name: displayName,
+      avatar: defaultAvatar,
       pro: false,
       subscription_plan: "free",
       subscription_status: "active",
