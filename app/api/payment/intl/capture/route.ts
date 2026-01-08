@@ -113,23 +113,31 @@ export async function POST(request: NextRequest) {
     endDate.setDate(endDate.getDate() + days);
 
     // Update or create subscription
-    const { error: subscriptionError } = await supabase
+    // Note: user_id might be a CloudBase string ID, not a UUID
+    const subscriptionData = {
+      user_id: userId,
+      start_date: new Date().toISOString(),
+      end_date: endDate.toISOString(),
+      is_active: true,
+      plan_type: paymentType || "pro",
+    };
+    console.log("[PayPal Capture] Inserting subscription data:", JSON.stringify(subscriptionData));
+
+    const { data: subscriptionResult, error: subscriptionError } = await supabase
       .from("subscriptions")
-      .upsert({
-        user_id: userId,
-        start_date: new Date().toISOString(),
-        end_date: endDate.toISOString(),
-        is_active: true,
-        plan_type: paymentType || "pro",
-      });
+      .upsert(subscriptionData)
+      .select();
 
     if (subscriptionError) {
-      console.error("[PayPal Capture] Subscription update failed:", subscriptionError);
+      console.error("[PayPal Capture] Subscription update failed:", JSON.stringify(subscriptionError));
+      console.error("[PayPal Capture] Subscription error details - code:", subscriptionError.code, "message:", subscriptionError.message, "details:", subscriptionError.details);
       return NextResponse.json(
-        { error: "Failed to update subscription" },
+        { error: "Failed to update subscription: " + subscriptionError.message },
         { status: 500 }
       );
     }
+
+    console.log("[PayPal Capture] Subscription created/updated:", JSON.stringify(subscriptionResult));
 
     // 5. Update payment record
     const { error: paymentError } = await supabase
