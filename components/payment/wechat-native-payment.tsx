@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { getAccessToken } from "@/components/auth/auth-provider";
 
 interface WechatNativePaymentProps {
   orderId: string;
@@ -37,7 +38,7 @@ export function WechatNativePayment({
   // 轮询支付状态
   const checkPaymentStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getAccessToken();
       if (!token) {
         setError("登录已过期，请重新登录");
         setStatus("failed");
