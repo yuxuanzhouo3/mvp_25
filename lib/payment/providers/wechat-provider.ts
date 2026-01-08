@@ -54,12 +54,22 @@ export function getWechatPayConfig(): WechatPayConfig | null {
     return null;
   }
 
+  // 处理私钥格式：替换转义的换行符
+  let formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
+
+  // 如果私钥没有 PEM 头尾，则添加
+  if (!formattedPrivateKey.includes("-----BEGIN")) {
+    const cleanKey = formattedPrivateKey.replace(/\s/g, "");
+    const keyLines = cleanKey.match(/.{1,64}/g)?.join("\n") || cleanKey;
+    formattedPrivateKey = `-----BEGIN PRIVATE KEY-----\n${keyLines}\n-----END PRIVATE KEY-----`;
+  }
+
   return {
     mchId,
     appId,
     apiKeyV3,
     serialNo,
-    privateKey: privateKey.replace(/\\n/g, "\n"),
+    privateKey: formattedPrivateKey,
     notifyUrl,
   };
 }
