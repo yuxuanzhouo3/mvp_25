@@ -13,10 +13,11 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Crown, Share2, TrendingUp, Brain, GraduationCap, Sparkles, ArrowRight, Loader2, User } from "lucide-react"
+import { Crown, Share2, TrendingUp, Brain, GraduationCap, Sparkles, ArrowRight, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AiCoachModal } from "@/components/ai-coach-modal"
 import { useAuth } from "@/components/auth/auth-provider"
+import { UserAvatarMenu } from "@/components/navigation/user-avatar-menu"
 
 interface UserSkills {
   [category: string]: {
@@ -187,14 +188,7 @@ export default function HomePage() {
                 <Share2 className="w-4 h-4 mr-2" />
                 分享成果
               </Button>
-              <Button
-                variant="ghost"
-                onClick={() => router.push("/profile")}
-                className="w-10 h-10 rounded-full p-0 bg-slate-700 hover:bg-slate-600"
-                title="个人中心"
-              >
-                <User className="w-5 h-5 text-slate-300" />
-              </Button>
+              <UserAvatarMenu />
             </div>
           </div>
         </div>
