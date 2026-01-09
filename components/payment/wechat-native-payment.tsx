@@ -30,9 +30,9 @@ export function WechatNativePayment({
   const [countdown, setCountdown] = useState(300); // 5 分钟倒计时
   const [error, setError] = useState<string | null>(null);
 
-  // 格式化金额
-  const formatAmount = (cents: number) => {
-    return (cents / 100).toFixed(2);
+  // 格式化金额（amount 已经是元为单位）
+  const formatAmount = (yuan: number) => {
+    return yuan.toFixed(2);
   };
 
   // 轮询支付状态

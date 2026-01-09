@@ -24,9 +24,9 @@ export function AlipayPayment({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  // 格式化金额
-  const formatAmount = (cents: number) => {
-    return (cents / 100).toFixed(2);
+  // 格式化金额（amount 已经是元为单位）
+  const formatAmount = (yuan: number) => {
+    return yuan.toFixed(2);
   };
 
   // 提交表单
