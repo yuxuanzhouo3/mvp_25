@@ -80,6 +80,9 @@ function ExamSetupContent() {
   const [syllabusData, setSyllabusData] = useState<SyllabusData | null>(null)
   const [processingSteps, setProcessingSteps] = useState<string[]>([])
 
+  // 拖拽上传状态
+  const [isDragOver, setIsDragOver] = useState(false)
+
   // 获取考试类型
   const getExamType = (name: string): string => {
     const lowerName = name.toLowerCase()
@@ -370,20 +373,57 @@ function ExamSetupContent() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // 验证文件
-      const validation = validateFile(file)
-      if (!validation.valid) {
-        setFileError(validation.error || '文件验证失败')
-        setUploadedFile(null)
-        setSourceType(null)
-        // 清空 input
-        e.target.value = ''
-        return
-      }
+      processFile(file)
+      // 清空 input
+      e.target.value = ''
+    }
+  }
 
-      setFileError(null)
-      setUploadedFile(file)
-      setSourceType('upload')
+  // 处理文件验证和设置（抽取公共逻辑）
+  const processFile = (file: File) => {
+    // 验证文件
+    const validation = validateFile(file)
+    if (!validation.valid) {
+      setFileError(validation.error || '文件验证失败')
+      setUploadedFile(null)
+      setSourceType(null)
+      return
+    }
+
+    setFileError(null)
+    setUploadedFile(file)
+    setSourceType('upload')
+  }
+
+  // 拖拽事件处理
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // 只有当离开整个拖拽区域时才设置为 false
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return
+    setIsDragOver(false)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    const files = e.dataTransfer.files
+    if (files && files.length > 0) {
+      const file = files[0]
+      processFile(file)
     }
   }
 
@@ -587,11 +627,19 @@ function ExamSetupContent() {
 
               {/* 上传区域 */}
               {sourceType === 'upload' && (
-                <div className={`border-2 border-dashed rounded-xl p-8 text-center mb-6 animate-in fade-in duration-300 transition-all ${
-                  !uploadedFile
-                    ? 'border-blue-500 bg-blue-500/10 animate-pulse'
-                    : 'border-slate-600'
-                }`}>
+                <div
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-xl p-8 text-center mb-6 animate-in fade-in duration-300 transition-all ${
+                    isDragOver
+                      ? 'border-green-400 bg-green-500/20 scale-[1.02]'
+                      : !uploadedFile
+                        ? 'border-blue-500 bg-blue-500/10 animate-pulse'
+                        : 'border-slate-600'
+                  }`}
+                >
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
@@ -599,8 +647,14 @@ function ExamSetupContent() {
                     className="hidden"
                     id="file-upload"
                   />
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    {uploadedFile ? (
+                  <label htmlFor="file-upload" className="cursor-pointer block">
+                    {isDragOver ? (
+                      <>
+                        <Upload className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                        <p className="text-green-300 font-medium">松开鼠标上传文件</p>
+                        <p className="text-sm text-green-400/70">支持 PDF、Word 格式</p>
+                      </>
+                    ) : uploadedFile ? (
                       <div className="flex items-center justify-center gap-3">
                         <FileText className="w-8 h-8 text-blue-400" />
                         <div className="text-left">
@@ -615,6 +669,7 @@ function ExamSetupContent() {
                         <Upload className="w-12 h-12 text-blue-400 mx-auto mb-3 animate-bounce" />
                         <p className="text-blue-300 font-medium">点击或拖拽上传文件</p>
                         <p className="text-sm text-blue-400/70">支持 PDF、Word 格式（最大 10MB）</p>
+                        <p className="text-xs text-slate-500 mt-2">可从文件夹、QQ、微信直接拖入</p>
                       </>
                     )}
                   </label>
