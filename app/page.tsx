@@ -71,6 +71,7 @@ export default function HomePage() {
         ...prev,
         id: user.id || prev.id,
         name: user.displayName || user.email?.split("@")[0] || prev.name,
+        isPremium: user.pro || false,
       }))
     }
   }, [user])

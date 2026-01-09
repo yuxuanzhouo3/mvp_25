@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatDateTime } from "@/lib/utils/format-date"
+import { getAccessToken } from "@/components/auth/auth-provider"
 import { Receipt, Loader2 } from "lucide-react"
 
 interface Payment {
@@ -56,7 +57,12 @@ export function PaymentHistory() {
 
   const fetchPayments = async () => {
     try {
-      const token = localStorage.getItem("auth_token")
+      const token = getAccessToken()
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
       const response = await fetch("/api/payment/history", {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -123,6 +123,26 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     if (verificationStatus === "success") {
+      // 刷新用户状态到 localStorage
+      const refreshUserStatus = async () => {
+        const token = getAccessToken();
+        if (!token) return;
+
+        try {
+          const response = await fetch("/api/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem("auth_user", JSON.stringify(data.user));
+          }
+        } catch (error) {
+          console.error("Failed to refresh user status:", error);
+        }
+      };
+
+      refreshUserStatus();
+
       // Delay to show content with animation
       const timer = setTimeout(() => {
         setShowContent(true);

@@ -21,6 +21,7 @@ interface AuthContextType {
   register: (email: string, password: string, confirmPassword: string, name?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshAccessToken: () => Promise<boolean>;
+  refetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -140,6 +141,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  // 手动刷新用户信息（支付成功后调用）
+  const refetchUser = useCallback(async () => {
+    const tokens = getStoredTokens();
+    if (!tokens?.accessToken) return;
+
+    try {
+      const response = await fetch("/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        saveUser(data.user);
+      }
+    } catch (error) {
+      console.error("Failed to refetch user:", error);
+    }
+  }, [getStoredTokens, saveUser]);
+
   // 登录
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
@@ -219,6 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         refreshAccessToken,
+        refetchUser,
       }}
     >
       {children}

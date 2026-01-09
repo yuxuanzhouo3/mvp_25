@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { formatDate } from "@/lib/utils/format-date"
-import { useAuth } from "@/components/auth/auth-provider"
+import { useAuth, getAccessToken } from "@/components/auth/auth-provider"
 import {
   Crown,
   CheckCircle,
@@ -51,7 +51,12 @@ export function SubscriptionCard() {
 
   const fetchSubscription = async () => {
     try {
-      const token = localStorage.getItem("auth_token")
+      const token = getAccessToken()
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
       const response = await fetch("/api/subscription", {
         headers: {
           Authorization: `Bearer ${token}`,
