@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowRight, Upload, Search, Loader2, Zap, Brain } from "lucide-react"
+import { ArrowRight, ArrowLeft, Upload, Search, Loader2, Zap, Brain, ChevronRight } from "lucide-react"
 import { getSubjectDimensions, type SubjectDimension } from "@/lib/subject-dimensions"
 
 interface DynamicSkillAssessmentProps {
@@ -22,6 +22,9 @@ function getLevelLabel(score: number): { label: string; color: string } {
   return { label: "精通阶段 - 专家级别", color: "text-purple-400" }
 }
 
+// 每页显示的维度数量
+const DIMENSIONS_PER_PAGE = 5
+
 export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSkillAssessmentProps) {
   const router = useRouter()
   const [subjectInput, setSubjectInput] = useState("")
@@ -29,6 +32,28 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
   const [currentSubject, setCurrentSubject] = useState<string | null>(null)
   const [dimensions, setDimensions] = useState<SubjectDimension[]>([])
   const [ratings, setRatings] = useState<Record<string, number>>({})
+  const [currentPage, setCurrentPage] = useState(1)
+
+  // 计算总页数
+  const totalPages = Math.ceil(dimensions.length / DIMENSIONS_PER_PAGE)
+
+  // 获取当前页的维度
+  const getCurrentPageDimensions = () => {
+    const startIndex = (currentPage - 1) * DIMENSIONS_PER_PAGE
+    const endIndex = startIndex + DIMENSIONS_PER_PAGE
+    return dimensions.slice(startIndex, endIndex)
+  }
+
+  // 检查当前页是否全部评估完成
+  const isCurrentPageComplete = () => {
+    const currentDimensions = getCurrentPageDimensions()
+    return currentDimensions.every((dim) => ratings[dim.id] !== undefined)
+  }
+
+  // 检查所有维度是否评估完成
+  const isAllComplete = () => {
+    return dimensions.length > 0 && dimensions.every((dim) => ratings[dim.id] !== undefined)
+  }
 
   // 处理科目提交
   const handleSubjectSubmit = useCallback(async () => {
@@ -45,6 +70,7 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
     setCurrentSubject(subjectInput)
     setDimensions(matchedDimensions)
     setRatings({}) // 重置评分
+    setCurrentPage(1) // 重置到第一页
     setIsAnalyzing(false)
   }, [subjectInput])
 
@@ -76,7 +102,33 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
     setDimensions([])
     setRatings({})
     setSubjectInput("")
+    setCurrentPage(1)
   }
+
+  // 下一页
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  // 上一页
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
+  }
+
+  // 生成考题
+  const handleGenerateExam = () => {
+    if (onGenerateExam && currentSubject) {
+      onGenerateExam(currentSubject, ratings)
+    } else {
+      handleSearchClick()
+    }
+  }
+
+  const currentPageDimensions = getCurrentPageDimensions()
 
   return (
     <div className="space-y-6">
@@ -185,7 +237,7 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
             </div>
             <Skeleton className="h-4 w-64 bg-slate-700/70" />
             <div className="space-y-6 mt-6">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1.5">
@@ -218,20 +270,14 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
                   {Object.keys(ratings).length}/{dimensions.length}
                 </Badge>
               </div>
-              <p className="text-sm text-slate-400 mt-1">请评估你在以下技能的熟练程度 (1-10分)</p>
+              <p className="text-sm text-slate-400 mt-1">
+                请评估你在以下技能的熟练程度 (1-10分) · 第 {currentPage}/{totalPages} 页
+              </p>
             </div>
-            {Object.keys(ratings).length > 0 && (
-              <button
-                onClick={handleChangeSubject}
-                className="text-xs text-slate-500 hover:text-slate-400 transition-colors"
-              >
-                跳过评测
-              </button>
-            )}
           </div>
 
           <div className="space-y-8">
-            {dimensions.map((dimension) => {
+            {currentPageDimensions.map((dimension) => {
               const currentRating = ratings[dimension.id]
               const levelInfo = currentRating ? getLevelLabel(currentRating) : null
 
@@ -275,30 +321,89 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
               )
             })}
           </div>
+
+          {/* 分页指示器 */}
+          <div className="flex items-center justify-center gap-2 mt-6">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  page === currentPage
+                    ? "bg-blue-500 w-6"
+                    : "bg-slate-600 hover:bg-slate-500"
+                }`}
+              />
+            ))}
+          </div>
         </Card>
       )}
 
-      {/* 生成专属考题卡片 - 与评测维度同时出现 */}
+      {/* 操作按钮卡片 */}
       {currentSubject && !isAnalyzing && dimensions.length > 0 && (
         <Card className="bg-slate-800/50 border-slate-700 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
-          <button
-            onClick={() => {
-              if (onGenerateExam && currentSubject) {
-                onGenerateExam(currentSubject, ratings)
-              } else {
-                handleSearchClick()
-              }
-            }}
-            className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600
-                     hover:from-blue-700 hover:to-purple-700 text-white font-medium
-                     transition-all duration-200 flex items-center justify-center gap-2
-                     shadow-lg shadow-purple-600/20 hover:shadow-purple-600/30"
-          >
-            <Zap className="w-5 h-5" />
-            <span className="text-lg">生成我的专属考题</span>
-          </button>
+          {currentPage < totalPages ? (
+            // 第一页：显示"下一步"按钮
+            <div className="flex gap-3">
+              {currentPage > 1 && (
+                <button
+                  onClick={handlePrevPage}
+                  className="flex-1 py-4 rounded-xl bg-slate-700 hover:bg-slate-600
+                           text-white font-medium transition-all duration-200
+                           flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  <span>上一步</span>
+                </button>
+              )}
+              <button
+                onClick={handleNextPage}
+                disabled={!isCurrentPageComplete()}
+                className={`flex-1 py-4 rounded-xl font-medium transition-all duration-200
+                           flex items-center justify-center gap-2
+                           ${isCurrentPageComplete()
+                             ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-600/20"
+                             : "bg-slate-700 text-slate-500 cursor-not-allowed"
+                           }`}
+              >
+                <span className="text-lg">下一步</span>
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            // 最后一页：显示"生成专属题目"按钮
+            <div className="flex gap-3">
+              <button
+                onClick={handlePrevPage}
+                className="flex-shrink-0 px-6 py-4 rounded-xl bg-slate-700 hover:bg-slate-600
+                         text-white font-medium transition-all duration-200
+                         flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>上一步</span>
+              </button>
+              <button
+                onClick={handleGenerateExam}
+                disabled={!isAllComplete()}
+                className={`flex-1 py-4 rounded-xl font-medium transition-all duration-200
+                           flex items-center justify-center gap-2
+                           ${isAllComplete()
+                             ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-600/20 hover:shadow-purple-600/30"
+                             : "bg-slate-700 text-slate-500 cursor-not-allowed"
+                           }`}
+              >
+                <Zap className="w-5 h-5" />
+                <span className="text-lg">生成我的专属考题</span>
+              </button>
+            </div>
+          )}
           <p className="text-center text-xs text-slate-500 mt-3">
-            AI 将根据评分侧重训练薄弱环节
+            {currentPage < totalPages
+              ? `请完成当前页所有评估后进入下一步 (${Object.keys(ratings).filter(id => getCurrentPageDimensions().some(d => d.id === id)).length}/${currentPageDimensions.length})`
+              : isAllComplete()
+                ? "AI 将根据评分侧重训练薄弱环节"
+                : `请完成所有评估 (${Object.keys(ratings).length}/${dimensions.length})`
+            }
           </p>
         </Card>
       )}
