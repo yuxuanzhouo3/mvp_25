@@ -16,10 +16,10 @@ interface DynamicSkillAssessmentProps {
 
 // 获取等级标签
 function getLevelLabel(score: number): { label: string; color: string } {
-  if (score <= 3) return { label: "入门阶段 - 需要系统学习", color: "text-orange-400" }
-  if (score <= 6) return { label: "进阶阶段 - 能够独立完成基本任务", color: "text-blue-400" }
-  if (score <= 8) return { label: "熟练阶段 - 可以处理复杂问题", color: "text-green-400" }
-  return { label: "精通阶段 - 专家级别", color: "text-purple-400" }
+  if (score <= 3) return { label: "入门阶段 - 需要系统学习", color: "text-orange-500 dark:text-orange-400" }
+  if (score <= 6) return { label: "进阶阶段 - 能够独立完成基本任务", color: "text-indigo-600 dark:text-indigo-400" }
+  if (score <= 8) return { label: "熟练阶段 - 可以处理复杂问题", color: "text-emerald-600 dark:text-emerald-400" }
+  return { label: "精通阶段 - 专家级别", color: "text-violet-600 dark:text-violet-400" }
 }
 
 // 每页显示的维度数量
@@ -135,20 +135,20 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
 
   return (
     <div className="space-y-6">
-      {/* 输入区域 - 紫色渐变卡片 */}
-      <Card className="bg-gradient-to-br from-purple-600 to-purple-700 border-0 p-6 rounded-3xl shadow-xl">
+      {/* 输入区域 - 极简白色卡片 */}
+      <Card className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-6 rounded-2xl">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold text-white">今天你想攻克什么考试？</h2>
+          <h2 className="text-2xl font-bold text-neutral-950 dark:text-white">今天你想攻克什么考试？</h2>
           {currentSubject && (
             <button
               onClick={handleChangeSubject}
-              className="text-sm text-purple-200 hover:text-white transition-colors"
+              className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               切换科目
             </button>
           )}
         </div>
-        <p className="text-purple-200 text-sm mb-5">AI 将根据你的目标，自动构建能力评估模型。</p>
+        <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-5">AI 将根据你的目标，自动构建能力评估模型。</p>
 
         {/* 科目输入框 */}
         <div className="relative">
@@ -157,17 +157,16 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
             onChange={(e) => setSubjectInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="输入目标，如：考研数学"
-            className="bg-white/95 border-0 text-slate-800 placeholder:text-slate-400 pr-14 h-14 text-base rounded-2xl shadow-sm"
+            className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 pr-14 h-14 text-base rounded-xl"
             disabled={isAnalyzing}
           />
           <button
             onClick={handleSubjectSubmit}
             disabled={isAnalyzing || !subjectInput.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-xl
-                       bg-gradient-to-r from-purple-500 to-blue-500
-                       hover:from-purple-600 hover:to-blue-600
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-lg
+                       bg-indigo-600 hover:bg-indigo-700
                        disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-all duration-200 shadow-md"
+                       transition-all duration-200"
           >
             {isAnalyzing ? (
               <Loader2 className="w-5 h-5 text-white animate-spin" />
@@ -183,8 +182,8 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
             <button
               key={subject}
               onClick={() => setSubjectInput(subject)}
-              className="px-4 py-1.5 text-sm text-white/90 bg-white/10 hover:bg-white/20
-                       border border-white/20 rounded-full transition-all duration-200"
+              className="px-4 py-1.5 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700
+                       border border-neutral-200 dark:border-neutral-700 rounded-full transition-all duration-200 cursor-pointer"
             >
               {subject}
             </button>
@@ -195,8 +194,8 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
         <div className="grid grid-cols-2 gap-3 mt-4">
           <Badge
             onClick={handleUploadClick}
-            className="cursor-pointer bg-white/20 text-white border-white/30
-                       hover:bg-white/30 transition-colors px-4 py-2.5 text-sm rounded-full
+            className="cursor-pointer bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700
+                       hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors px-4 py-2.5 text-sm rounded-full
                        flex items-center justify-center"
           >
             <Upload className="w-3.5 h-3.5 mr-2" />
@@ -204,8 +203,8 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
           </Badge>
           <Badge
             onClick={handleSearchClick}
-            className="cursor-pointer bg-white/20 text-white border-white/30
-                       hover:bg-white/30 transition-colors px-4 py-2.5 text-sm rounded-full
+            className="cursor-pointer bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700
+                       hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors px-4 py-2.5 text-sm rounded-full
                        flex items-center justify-center"
           >
             <Search className="w-3.5 h-3.5 mr-2" />
@@ -216,14 +215,14 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
 
       {/* 等待设定目标占位符 */}
       {!currentSubject && !isAnalyzing && (
-        <Card className="bg-slate-800/50 border-slate-700 p-8 animate-in fade-in duration-300">
+        <Card className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-8 animate-in fade-in duration-300">
           <div className="flex flex-col items-center justify-center py-8">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600/20 to-purple-600/20
-                          flex items-center justify-center mb-6 border border-slate-600/50">
-              <Brain className="w-8 h-8 text-blue-400" />
+            <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800
+                          flex items-center justify-center mb-6 border border-neutral-200 dark:border-neutral-700">
+              <Brain className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">等待设定目标</h3>
-            <p className="text-sm text-slate-400 text-center max-w-xs">
+            <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-2">等待设定目标</h3>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center max-w-xs">
               在上方输入科目后，AI 将为你定制专属的知识点评分维度。
             </p>
           </div>
@@ -232,26 +231,26 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
 
       {/* 骨架屏加载效果 */}
       {isAnalyzing && (
-        <Card className="bg-slate-800/50 border-slate-700 p-6 animate-in fade-in duration-300">
+        <Card className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-6 animate-in fade-in duration-300">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <Skeleton className="h-6 w-48 bg-slate-700" />
-              <Skeleton className="h-5 w-16 rounded-full bg-slate-700" />
+              <Skeleton className="h-6 w-48 bg-neutral-200 dark:bg-neutral-800" />
+              <Skeleton className="h-5 w-16 rounded-full bg-neutral-200 dark:bg-neutral-800" />
             </div>
-            <Skeleton className="h-4 w-64 bg-slate-700/70" />
+            <Skeleton className="h-4 w-64 bg-neutral-100 dark:bg-neutral-800/70" />
             <div className="space-y-6 mt-6">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1.5">
-                      <Skeleton className="h-5 w-32 bg-slate-700" />
-                      <Skeleton className="h-3 w-48 bg-slate-700/50" />
+                      <Skeleton className="h-5 w-32 bg-neutral-200 dark:bg-neutral-800" />
+                      <Skeleton className="h-3 w-48 bg-neutral-100 dark:bg-neutral-800/50" />
                     </div>
-                    <Skeleton className="h-6 w-8 bg-slate-700" />
+                    <Skeleton className="h-6 w-8 bg-neutral-200 dark:bg-neutral-800" />
                   </div>
                   <div className="flex gap-2">
                     {[...Array(10)].map((_, j) => (
-                      <Skeleton key={j} className="w-8 h-8 rounded-full bg-slate-700" />
+                      <Skeleton key={j} className="w-8 h-8 rounded-full bg-neutral-200 dark:bg-neutral-800" />
                     ))}
                   </div>
                 </div>
@@ -263,17 +262,17 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
 
       {/* 动态评测维度 */}
       {currentSubject && !isAnalyzing && dimensions.length > 0 && (
-        <Card className="bg-slate-800/50 border-slate-700 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-center justify-between mb-6">
             <div>
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-semibold text-white">{currentSubject} · 技能诊断</h3>
-                <Badge className="bg-green-600/20 text-green-300 border-green-500/30 text-xs">
+                <h3 className="text-lg font-semibold text-neutral-950 dark:text-white">{currentSubject} · 技能诊断</h3>
+                <Badge variant="outline" className="border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs">
                   <Zap className="w-3 h-3 mr-1" />
                   {Object.keys(ratings).length}/{dimensions.length}
                 </Badge>
               </div>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
                 请评估你在以下技能的熟练程度 (1-10分) · 第 {currentPage}/{totalPages} 页
               </p>
             </div>
@@ -289,9 +288,9 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-white font-medium">{dimension.name}</span>
+                        <span className="text-neutral-950 dark:text-white font-medium">{dimension.name}</span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{dimension.description}</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-0.5">{dimension.description}</p>
                       {levelInfo && (
                         <p className={`text-xs mt-1 ${levelInfo.color}`}>
                           <Zap className="w-3 h-3 inline mr-1" />
@@ -299,7 +298,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                         </p>
                       )}
                     </div>
-                    <span className="text-2xl font-bold text-blue-400 min-w-[3rem] text-right tabular-nums">
+                    <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 min-w-[3rem] text-right tabular-nums">
                       {currentRating || "-"}
                     </span>
                   </div>
@@ -310,10 +309,10 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                       <button
                         key={score}
                         onClick={() => handleRating(dimension.id, score)}
-                        className={`w-8 h-8 rounded-full text-sm font-medium transition-all duration-200 ${
+                        className={`w-8 h-8 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
                           currentRating === score
-                            ? "bg-blue-600 text-white scale-110 shadow-lg shadow-blue-600/30"
-                            : "bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-slate-300"
+                            ? "bg-indigo-600 text-white scale-110 shadow-lg shadow-indigo-600/30"
+                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-neutral-200"
                         }`}
                       >
                         {score}
@@ -331,10 +330,10 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-2 h-2 rounded-full transition-all ${
+                className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
                   page === currentPage
-                    ? "bg-blue-500 w-6"
-                    : "bg-slate-600 hover:bg-slate-500"
+                    ? "bg-indigo-600 w-6"
+                    : "bg-neutral-300 dark:bg-neutral-600 hover:bg-neutral-400 dark:hover:bg-neutral-500"
                 }`}
               />
             ))}
@@ -344,16 +343,16 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
 
       {/* 操作按钮卡片 */}
       {currentSubject && !isAnalyzing && dimensions.length > 0 && (
-        <Card className="bg-slate-800/50 border-slate-700 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
+        <Card className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
           {currentPage < totalPages ? (
             // 第一页：显示"下一步"按钮
             <div className="flex gap-3">
               {currentPage > 1 && (
                 <button
                   onClick={handlePrevPage}
-                  className="flex-1 py-4 rounded-xl bg-slate-700 hover:bg-slate-600
-                           text-white font-medium transition-all duration-200
-                           flex items-center justify-center gap-2"
+                  className="flex-1 py-4 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700
+                           text-neutral-700 dark:text-neutral-300 font-medium transition-all duration-200
+                           flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-5 h-5" />
                   <span>上一步</span>
@@ -365,8 +364,8 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                 className={`flex-1 py-4 rounded-xl font-medium transition-all duration-200
                            flex items-center justify-center gap-2
                            ${isCurrentPageComplete()
-                             ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-600/20"
-                             : "bg-slate-700 text-slate-500 cursor-not-allowed"
+                             ? "bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+                             : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 cursor-not-allowed"
                            }`}
               >
                 <span className="text-lg">下一步</span>
@@ -379,8 +378,8 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
               <div className="flex gap-3">
                 <button
                   onClick={handlePrevPage}
-                  className="flex-shrink-0 px-6 py-4 rounded-xl bg-slate-700 hover:bg-slate-600
-                           text-white font-medium transition-all duration-200
+                  className="flex-shrink-0 px-6 py-4 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700
+                           text-neutral-700 dark:text-neutral-300 font-medium transition-all duration-200
                            flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -392,8 +391,8 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                   className={`flex-1 py-4 rounded-xl font-medium transition-all duration-200
                              flex items-center justify-center gap-2
                              ${isAllComplete()
-                               ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-600/20 hover:shadow-purple-600/30 cursor-pointer"
-                               : "bg-slate-700 text-slate-500 cursor-not-allowed"
+                               ? "bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+                               : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 cursor-not-allowed"
                              }`}
                 >
                   <Zap className="w-5 h-5" />
@@ -402,7 +401,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
               </div>
             </div>
           )}
-          <p className="text-center text-xs text-slate-500 mt-3">
+          <p className="text-center text-xs text-neutral-500 dark:text-neutral-400 mt-3">
             {currentPage < totalPages
               ? `请完成当前页所有评估后进入下一步 (${Object.keys(ratings).filter(id => getCurrentPageDimensions().some(d => d.id === id)).length}/${currentPageDimensions.length})`
               : isAllComplete()

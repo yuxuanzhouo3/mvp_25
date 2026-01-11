@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation"
 import { AiCoachModal } from "@/components/ai-coach-modal"
 import { useAuth } from "@/components/auth/auth-provider"
 import { UserAvatarMenu } from "@/components/navigation/user-avatar-menu"
+import { ModeToggle } from "@/components/ModeToggle"
 
 interface UserSkills {
   [category: string]: {
@@ -81,10 +82,10 @@ export default function HomePage() {
   // 加载中显示骨架屏
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-400 mx-auto mb-4" />
-          <p className="text-slate-400">加载中...</p>
+          <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
+          <p className="text-neutral-500 dark:text-neutral-400">加载中...</p>
         </div>
       </div>
     )
@@ -140,33 +141,33 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <div className="text-2xl font-bold text-neutral-950 dark:text-white">
                 SkillMap
               </div>
-              <div className="text-sm text-slate-400">技能评估 · 角色定位 · 成长路径</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">技能评估 · 角色定位 · 成长路径</div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {userProfile.weeklyRank > 0 && (
-                <Badge className="bg-yellow-600/20 text-yellow-300 border-yellow-500/30">
+                <Badge variant="outline" className="border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   周排名 #{userProfile.weeklyRank}
                 </Badge>
               )}
               {userProfile.isPremium ? (
-                <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0">
+                <Badge className="bg-indigo-600 text-white border-0">
                   <Crown className="w-3 h-3 mr-1" />
                   Premium
                 </Badge>
               ) : (
                 <Button
                   onClick={() => setShowUpgradeModal(true)}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
                   <Crown className="w-4 h-4 mr-2" />
                   升级Pro
@@ -174,7 +175,8 @@ export default function HomePage() {
               )}
               <Button
                 onClick={handleStartAiCoach}
-                className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+                variant="outline"
+                className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 disabled={!userProfile.role}
               >
                 <Brain className="w-4 h-4 mr-2" />
@@ -184,66 +186,67 @@ export default function HomePage() {
                 variant="outline"
                 onClick={() => setShowShareModal(true)}
                 disabled={!userProfile.role}
-                className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 分享成果
               </Button>
+              <ModeToggle />
               <UserAvatarMenu />
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-white">发现你的技能优势</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">发现你的技能优势</h1>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-slate-400">完成度</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">完成度</div>
               <div className="w-32">
                 <Progress value={userProfile.assessmentProgress} className="h-2" />
               </div>
-              <div className="text-sm text-white font-medium">{userProfile.assessmentProgress}%</div>
+              <div className="text-sm text-neutral-950 dark:text-white font-medium">{userProfile.assessmentProgress}%</div>
             </div>
           </div>
 
           {/* Step Indicator */}
           <div className="flex items-center space-x-4">
             <div
-              className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
                 currentStep === "assessment"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-indigo-600 text-white"
                   : userProfile.assessmentProgress > 0
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-700 text-slate-400"
+                    ? "bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
+                    : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-current" />
               <span>技能评估</span>
             </div>
-            <div className="w-8 h-px bg-slate-600" />
+            <div className="w-8 h-px bg-neutral-300 dark:bg-neutral-700" />
             <div
-              className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
                 currentStep === "results"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-indigo-600 text-white"
                   : userProfile.role
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-700 text-slate-400"
+                    ? "bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
+                    : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-current" />
               <span>角色定位</span>
             </div>
-            <div className="w-8 h-px bg-slate-600" />
+            <div className="w-8 h-px bg-neutral-300 dark:bg-neutral-700" />
             <div
-              className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm ${
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
                 currentStep === "paths"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-indigo-600 text-white"
                   : userProfile.isPremium
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-700 text-slate-400"
+                    ? "bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
+                    : "bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-current" />
@@ -259,20 +262,20 @@ export default function HomePage() {
             <AchievementBadges achievements={userProfile.achievements} />
 
             {userProfile.role && (
-              <Card className="bg-slate-800/50 border-slate-700 p-4 mt-6">
-                <h3 className="text-lg font-semibold text-white mb-3">快速统计</h3>
+              <Card className="bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 p-4 mt-6">
+                <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-3">快速统计</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">角色定位</span>
-                    <span className="text-white font-medium">{userProfile.role}</span>
+                    <span className="text-neutral-500 dark:text-neutral-400">角色定位</span>
+                    <span className="text-neutral-950 dark:text-white font-medium">{userProfile.role}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">竞争力指数</span>
-                    <span className="text-blue-400 font-bold">{userProfile.competitivenessScore}/100</span>
+                    <span className="text-neutral-500 dark:text-neutral-400">竞争力指数</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">{userProfile.competitivenessScore}/100</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">超越用户</span>
-                    <span className="text-green-400 font-medium">{userProfile.competitivenessScore}%</span>
+                    <span className="text-neutral-500 dark:text-neutral-400">超越用户</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 font-medium">{userProfile.competitivenessScore}%</span>
                   </div>
                 </div>
               </Card>
@@ -302,7 +305,7 @@ export default function HomePage() {
                       }))
                       setUserSkills({})
                     }}
-                    className="border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-slate-200"
+                    className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   >
                     <Home className="w-4 h-4 mr-2" />
                     返回主页
@@ -310,11 +313,11 @@ export default function HomePage() {
                 </div>
 
                 <Tabs defaultValue="classification" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-slate-800 border-slate-700">
-                  <TabsTrigger value="classification" className="data-[state=active]:bg-blue-600">
+                <TabsList className="grid w-full grid-cols-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
+                  <TabsTrigger value="classification" className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-950 data-[state=active]:text-indigo-600">
                     角色分析
                   </TabsTrigger>
-                  <TabsTrigger value="competitiveness" className="data-[state=active]:bg-blue-600">
+                  <TabsTrigger value="competitiveness" className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-950 data-[state=active]:text-indigo-600">
                     竞争力报告
                   </TabsTrigger>
                 </TabsList>
