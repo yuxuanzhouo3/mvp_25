@@ -17,8 +17,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 禁用 Next.js 遥测
+# 这里的环境变量对于构建可能是必须的，如果有报错再调整
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# 👇 新增这一行：设置一个假的 Key 来骗过构建检查
+ENV OPENAI_API_KEY="sk-1234567890_dummy_key_for_build"
 
 # 开始构建
 RUN npm run build
