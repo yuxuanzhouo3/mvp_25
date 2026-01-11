@@ -1,5 +1,5 @@
 # 使用官方 Node.js 轻量级镜像
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # 1. 依赖安装阶段
 FROM base AS deps
