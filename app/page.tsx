@@ -282,31 +282,7 @@ export default function HomePage() {
           {/* Main Content Area */}
           <div className="lg:col-span-3">
             {currentStep === "assessment" && (
-              <DynamicSkillAssessment
-                onGenerateExam={(subject, ratings) => {
-                  // 将评分转换为 userSkills 格式
-                  const skills: UserSkills = {
-                    [subject]: Object.entries(ratings).reduce((acc, [key, value]) => {
-                      acc[key] = value * 10 // 转换为百分比
-                      return acc
-                    }, {} as Record<string, number>)
-                  }
-                  setUserSkills(skills)
-                  // 计算平均分作为竞争力指数
-                  const avgScore = Object.values(ratings).length > 0
-                    ? Math.round(Object.values(ratings).reduce((a, b) => a + b, 0) / Object.values(ratings).length * 10)
-                    : 60
-                  setUserProfile((prev) => ({
-                    ...prev,
-                    role: "通用开发者",
-                    competitivenessScore: avgScore,
-                    assessmentProgress: 100,
-                    achievements: [...prev.achievements, "技能评估完成者"],
-                    weeklyRank: Math.floor(Math.random() * 100) + 1,
-                  }))
-                  setCurrentStep("results")
-                }}
-              />
+              <DynamicSkillAssessment />
             )}
 
             {currentStep === "results" && (

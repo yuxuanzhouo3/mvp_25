@@ -8,10 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowRight, ArrowLeft, Upload, Search, Loader2, Zap, Brain, ChevronRight } from "lucide-react"
 import { getSubjectDimensions, type SubjectDimension } from "@/lib/subject-dimensions"
+import { analyzeAssessmentResult } from "@/lib/types/assessment"
 
 interface DynamicSkillAssessmentProps {
   onComplete?: (subject: string, ratings: Record<string, number>) => void
-  onGenerateExam?: (subject: string, ratings: Record<string, number>) => void
 }
 
 // 获取等级标签
@@ -25,7 +25,7 @@ function getLevelLabel(score: number): { label: string; color: string } {
 // 每页显示的维度数量
 const DIMENSIONS_PER_PAGE = 5
 
-export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSkillAssessmentProps) {
+export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentProps) {
   const router = useRouter()
   const [subjectInput, setSubjectInput] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -119,13 +119,16 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
     }
   }
 
-  // 生成考题
+  // 生成考题 - 跳转到能力分析页面
   const handleGenerateExam = () => {
-    if (onGenerateExam && currentSubject) {
-      onGenerateExam(currentSubject, ratings)
-    } else {
-      handleSearchClick()
-    }
+    if (!currentSubject || dimensions.length === 0) return
+
+    // 保存评估数据到 localStorage
+    const assessmentResult = analyzeAssessmentResult(currentSubject, dimensions, ratings)
+    localStorage.setItem('targetedAssessmentData', JSON.stringify(assessmentResult))
+
+    // 直接跳转，不触发回调避免页面闪烁
+    router.push('/assessment/targeted-quiz')
   }
 
   const currentPageDimensions = getCurrentPageDimensions()
@@ -371,30 +374,32 @@ export function DynamicSkillAssessment({ onComplete, onGenerateExam }: DynamicSk
               </button>
             </div>
           ) : (
-            // 最后一页：显示"生成专属题目"按钮
-            <div className="flex gap-3">
-              <button
-                onClick={handlePrevPage}
-                className="flex-shrink-0 px-6 py-4 rounded-xl bg-slate-700 hover:bg-slate-600
-                         text-white font-medium transition-all duration-200
-                         flex items-center justify-center gap-2"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>上一步</span>
-              </button>
-              <button
-                onClick={handleGenerateExam}
-                disabled={!isAllComplete()}
-                className={`flex-1 py-4 rounded-xl font-medium transition-all duration-200
-                           flex items-center justify-center gap-2
-                           ${isAllComplete()
-                             ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-600/20 hover:shadow-purple-600/30"
-                             : "bg-slate-700 text-slate-500 cursor-not-allowed"
-                           }`}
-              >
-                <Zap className="w-5 h-5" />
-                <span className="text-lg">生成我的专属考题</span>
-              </button>
+            // 最后一页：显示操作按钮
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePrevPage}
+                  className="flex-shrink-0 px-6 py-4 rounded-xl bg-slate-700 hover:bg-slate-600
+                           text-white font-medium transition-all duration-200
+                           flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  <span>上一步</span>
+                </button>
+                <button
+                  onClick={handleGenerateExam}
+                  disabled={!isAllComplete()}
+                  className={`flex-1 py-4 rounded-xl font-medium transition-all duration-200
+                             flex items-center justify-center gap-2
+                             ${isAllComplete()
+                               ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-600/20 hover:shadow-purple-600/30 cursor-pointer"
+                               : "bg-slate-700 text-slate-500 cursor-not-allowed"
+                             }`}
+                >
+                  <Zap className="w-5 h-5" />
+                  <span className="text-lg">生成我的专属考题</span>
+                </button>
+              </div>
             </div>
           )}
           <p className="text-center text-xs text-slate-500 mt-3">
