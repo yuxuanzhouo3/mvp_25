@@ -8,9 +8,8 @@ import { CompetitivenessReport } from "@/components/competitiveness-report"
 import { LearningPathGenerator } from "@/components/learning-path-generator"
 import { ShareModal } from "@/components/share-modal"
 import { UpgradeModal } from "@/components/upgrade-modal"
-import { AchievementBadges } from "@/components/achievement-badges"
+import { BannerAd } from "@/components/banner-ad"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
@@ -255,35 +254,11 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* 横幅广告 */}
+        <BannerAd onUpgrade={() => setShowUpgradeModal(true)} />
+
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <AchievementBadges achievements={userProfile.achievements} />
-
-            {userProfile.role && (
-              <Card className="bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 p-4 mt-6">
-                <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-3">快速统计</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500 dark:text-neutral-400">角色定位</span>
-                    <span className="text-neutral-950 dark:text-white font-medium">{userProfile.role}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500 dark:text-neutral-400">竞争力指数</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">{userProfile.competitivenessScore}/100</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500 dark:text-neutral-400">超越用户</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-medium">{userProfile.competitivenessScore}%</span>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </div>
-
-          {/* Main Content Area */}
-          <div className="lg:col-span-3">
+        <div className="w-full">
             {currentStep === "assessment" && (
               <DynamicSkillAssessment />
             )}
@@ -346,7 +321,6 @@ export default function HomePage() {
             {currentStep === "paths" && userProfile.isPremium && (
               <LearningPathGenerator userSkills={userSkills} role={userProfile.role} />
             )}
-          </div>
         </div>
       </div>
 
