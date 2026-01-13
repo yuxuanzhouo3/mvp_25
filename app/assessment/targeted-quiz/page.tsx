@@ -156,6 +156,14 @@ export default function TargetedQuizPage() {
           description: d.description
         }))
 
+      // 如果所有维度都被分类为 strong（分数>=7），将分数最低的几个维度移到 medium 以确保有针对性练习
+      if (weakDimensions.length === 0 && mediumDimensions.length === 0 && strongDimensions.length > 0) {
+        const sortedStrong = [...strongDimensions].sort((a, b) => a.score - b.score)
+        const toMove = Math.min(Math.ceil(strongDimensions.length * 0.3), strongDimensions.length)
+        mediumDimensions.push(...sortedStrong.slice(0, toMove))
+        strongDimensions.splice(0, toMove)
+      }
+
       // 步骤2: 显示分析结果
       const weakCount = weakDimensions.length
       const mediumCount = mediumDimensions.length
