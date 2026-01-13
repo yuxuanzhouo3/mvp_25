@@ -220,17 +220,17 @@ export function AnswerFeedback({
             </span>
           </div>
 
-          {/* 操作按钮 - 仅错误时显示 */}
-          {!isCorrect && (
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={onFollowUp}
-                className="flex-1 border-violet-300 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30"
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                追问模式
-              </Button>
+          {/* 操作按钮 */}
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={onFollowUp}
+              className="flex-1 border-violet-300 dark:border-violet-800 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30"
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              追问模式
+            </Button>
+            {!isCorrect && (
               <Button
                 variant="outline"
                 onClick={handleAddToWrongBook}
@@ -253,8 +253,8 @@ export function AnswerFeedback({
                   </>
                 )}
               </Button>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* 下一题按钮 */}
           <Button

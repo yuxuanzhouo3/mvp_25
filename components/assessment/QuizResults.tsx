@@ -28,6 +28,7 @@ interface QuizResultsProps {
   subjectName: string
   analysis: PerformanceAnalysis
   maxCombo?: number
+  wrongCount?: number
   onRestart: () => void
   onGoHome: () => void
   onGoReview?: () => void
@@ -96,6 +97,7 @@ export function QuizResults({
   subjectName,
   analysis,
   maxCombo = 0,
+  wrongCount: wrongCountProp,
   onRestart,
   onGoHome,
   onGoReview
@@ -347,14 +349,14 @@ export function QuizResults({
               <RotateCcw className="w-5 h-5 mr-2" />
               再来一轮
             </Button>
-            {onGoReview && wrongCount > 0 ? (
+            {onGoReview && (wrongCountProp !== undefined ? wrongCountProp : wrongCount) > 0 ? (
               <Button
                 onClick={onGoReview}
                 variant="outline"
                 className="border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 py-6 cursor-pointer"
               >
                 <BookMarked className="w-5 h-5 mr-2" />
-                复习错题 ({wrongCount})
+                复习错题 ({wrongCountProp !== undefined ? wrongCountProp : wrongCount})
               </Button>
             ) : (
               <Button

@@ -11,14 +11,23 @@ import { PersonalizedQuizIntro } from "@/components/assessment/PersonalizedQuizI
 import { QuizResults } from "@/components/assessment/QuizResults"
 import { QuestionCard } from "@/components/exam/QuestionCard"
 import { AnswerFeedback } from "@/components/exam/AnswerFeedback"
+import { FollowUpChat } from "@/components/exam/FollowUpChat"
 
 import type {
   AssessmentResult,
   TargetedQuestion,
   QuizAnswer,
   PerformanceAnalysis,
-  STORAGE_KEYS
+  STORAGE_KEYS,
+  UserRankState,
+  WrongQuestion
 } from "@/lib/types/assessment"
+
+import {
+  calculatePoints,
+  POINT_RULES,
+  INITIAL_RANK_STATE
+} from "@/lib/exam-mock-data"
 
 type Phase = 'analysis' | 'intro' | 'loading' | 'quiz' | 'feedback' | 'results'
 
@@ -31,6 +40,8 @@ interface QuizState {
     isCorrect: boolean
     userAnswer: number | number[] | string[]
     timeSpent: number
+    pointsChange?: number
+    partialScore?: number
   } | null
 }
 
@@ -61,6 +72,29 @@ export default function TargetedQuizPage() {
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [processingSteps, setProcessingSteps] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
+
+  // 等级和积分状态
+  const [rankState, setRankState] = useState<UserRankState>({
+    rank: 'bronze',
+    points: 0,
+    currentCombo: 0,
+    maxCombo: 0,
+    consecutiveWrong: 0,
+    consecutiveCorrect: 0,
+    totalAnswered: 0,
+    totalCorrect: 0
+  })
+
+  // 追问功能状态
+  const [showFollowUp, setShowFollowUp] = useState(false)
+  const [followUpQuestion, setFollowUpQuestion] = useState<TargetedQuestion | null>(null)
+
+  // 错题本状态
+  const [wrongQuestions, setWrongQuestions] = useState<WrongQuestion[]>(() => {
+    if (typeof window === 'undefined') return []
+    const stored = localStorage.getItem('assessmentWrongQuestions')
+    return stored ? JSON.parse(stored) : []
+  })
 
   // 从 localStorage 加载评估数据
   useEffect(() => {
@@ -230,12 +264,21 @@ export default function TargetedQuizPage() {
 
     // 判断是否正确
     let isCorrect = false
+    let partialScore = undefined
+
     if (currentQuestion.type === 'single' || !currentQuestion.type) {
       isCorrect = answer === currentQuestion.correctAnswer
     } else if (currentQuestion.type === 'multiple') {
       const userAns = (answer as number[]).sort()
       const correctAns = (currentQuestion.correctAnswer as number[]).sort()
       isCorrect = JSON.stringify(userAns) === JSON.stringify(correctAns)
+
+      // 计算部分得分
+      if (!isCorrect && Array.isArray(answer) && Array.isArray(currentQuestion.correctAnswer)) {
+        const correctCount = userAns.filter(a => correctAns.includes(a)).length
+        const totalCount = correctAns.length
+        partialScore = correctCount / totalCount
+      }
     } else if (currentQuestion.type === 'fill') {
       const userAns = answer as string[]
       const correctAns = currentQuestion.correctAnswer as string[]
@@ -243,6 +286,32 @@ export default function TargetedQuizPage() {
         ans.trim().toLowerCase() === correctAns[i]?.trim().toLowerCase()
       )
     }
+
+    // ========== 计算连击和积分 ==========
+    const newCombo = isCorrect ? rankState.currentCombo + 1 : 0
+    const newMaxCombo = Math.max(rankState.maxCombo, newCombo)
+
+    // 计算积分变化
+    const pointsChange = calculatePoints(
+      isCorrect,
+      newCombo,
+      currentQuestion.difficulty,
+      isCorrect ? 0 : rankState.consecutiveWrong + 1,
+      partialScore
+    )
+
+    // 更新等级状态
+    setRankState(prev => ({
+      ...prev,
+      points: prev.points + pointsChange,
+      currentCombo: newCombo,
+      maxCombo: newMaxCombo,
+      consecutiveWrong: isCorrect ? 0 : prev.consecutiveWrong + 1,
+      consecutiveCorrect: isCorrect ? prev.consecutiveCorrect + 1 : 0,
+      totalAnswered: prev.totalAnswered + 1,
+      totalCorrect: prev.totalCorrect + (isCorrect ? 1 : 0)
+    }))
+    // ========== 计算结束 ==========
 
     // 记录答案
     const quizAnswer: QuizAnswer = {
@@ -259,13 +328,15 @@ export default function TargetedQuizPage() {
       currentAnswer: {
         isCorrect,
         userAnswer: answer,
-        timeSpent
+        timeSpent,
+        pointsChange,
+        partialScore
       }
     }))
 
     // 显示答案反馈
     setPhase('feedback')
-  }, [quizState.questions, quizState.currentIndex])
+  }, [quizState.questions, quizState.currentIndex, rankState])
 
   // 继续下一题
   const handleNextQuestion = useCallback(() => {
@@ -283,6 +354,51 @@ export default function TargetedQuizPage() {
       setPhase('quiz')
     }
   }, [quizState.currentIndex, quizState.questions.length])
+
+  // 添加到错题本
+  const handleAddToWrongBook = useCallback(() => {
+    const currentQuestion = quizState.questions[quizState.currentIndex]
+    if (!currentQuestion || !quizState.currentAnswer) return
+
+    setWrongQuestions(prev => {
+      const existingIndex = prev.findIndex(q => q.id === currentQuestion.id)
+
+      if (existingIndex >= 0) {
+        // 已存在，增加错误次数
+        const updated = [...prev]
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          wrongCount: updated[existingIndex].wrongCount + 1,
+          lastWrongTime: Date.now()
+        }
+        return updated
+      } else {
+        // 新增错题
+        const wrongQuestion: WrongQuestion = {
+          id: currentQuestion.id,
+          type: currentQuestion.type,
+          content: currentQuestion.content,
+          options: currentQuestion.options,
+          correctAnswer: currentQuestion.correctAnswer,
+          explanation: currentQuestion.explanation,
+          difficulty: currentQuestion.difficulty,
+          knowledgePoint: currentQuestion.knowledgePoint,
+          category: currentQuestion.dimensionName,
+          wrongCount: 1,
+          lastWrongTime: Date.now(),
+          userAnswer: quizState.currentAnswer.userAnswer
+        }
+        return [...prev, wrongQuestion]
+      }
+    })
+  }, [quizState.questions, quizState.currentIndex, quizState.currentAnswer])
+
+  // 持久化错题本到 localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('assessmentWrongQuestions', JSON.stringify(wrongQuestions))
+    }
+  }, [wrongQuestions])
 
   // 分析答题表现
   const analyzePerformance = useCallback(async () => {
@@ -593,6 +709,7 @@ export default function TargetedQuizPage() {
             </div>
 
             <AnswerFeedback
+              isOpen={phase === 'feedback'}
               question={{
                 id: currentQuestion.id,
                 type: currentQuestion.type,
@@ -606,7 +723,18 @@ export default function TargetedQuizPage() {
               }}
               userAnswer={quizState.currentAnswer.userAnswer}
               isCorrect={quizState.currentAnswer.isCorrect}
+              pointsChange={quizState.currentAnswer.pointsChange || 0}
+              currentPoints={rankState.points}
+              comboCount={rankState.currentCombo}
+              isLastQuestion={quizState.currentIndex === quizState.questions.length - 1}
+              partialScore={quizState.currentAnswer.partialScore}
+              onFollowUp={() => {
+                setFollowUpQuestion(currentQuestion)
+                setShowFollowUp(true)
+              }}
+              onAddToWrongBook={handleAddToWrongBook}
               onNext={handleNextQuestion}
+              onClose={() => setPhase('quiz')}
             />
           </div>
         )}
@@ -616,10 +744,42 @@ export default function TargetedQuizPage() {
           <QuizResults
             subjectName={assessmentData.subjectName}
             analysis={analysisResult}
-            maxCombo={0}
+            maxCombo={rankState.maxCombo}
+            wrongCount={wrongQuestions.length}
             onRestart={handleRestart}
+            onGoReview={wrongQuestions.length > 0 ? () => {
+              // 保存错题本到全局，供复习页面使用
+              localStorage.setItem('currentWrongQuestions', JSON.stringify(wrongQuestions))
+              router.push('/assessment/review')
+            } : undefined}
             onGoHome={handleGoHome}
           />
+        )}
+
+        {/* 追问模式 */}
+        {showFollowUp && followUpQuestion && (
+          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-neutral-950 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+              <FollowUpChat
+                isOpen={showFollowUp}
+                question={{
+                  id: followUpQuestion.id,
+                  type: followUpQuestion.type,
+                  content: followUpQuestion.content,
+                  options: followUpQuestion.options,
+                  correctAnswer: followUpQuestion.correctAnswer,
+                  explanation: followUpQuestion.explanation,
+                  difficulty: followUpQuestion.difficulty as 1 | 2 | 3 | 4 | 5,
+                  knowledgePoint: followUpQuestion.knowledgePoint,
+                  category: followUpQuestion.dimensionName
+                }}
+                onClose={() => {
+                  setShowFollowUp(false)
+                  setFollowUpQuestion(null)
+                }}
+              />
+            </div>
+          </div>
         )}
       </main>
     </div>
