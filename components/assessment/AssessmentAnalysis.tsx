@@ -8,7 +8,6 @@ import {
   Star,
   Target,
   Brain,
-  Zap,
   ChevronRight
 } from "lucide-react"
 import type { AssessmentResult, AssessmentDimension } from "@/lib/types/assessment"
@@ -16,22 +15,6 @@ import type { AssessmentResult, AssessmentDimension } from "@/lib/types/assessme
 interface AssessmentAnalysisProps {
   assessmentData: AssessmentResult
   onContinue: () => void
-}
-
-// 获取分数对应的颜色
-function getScoreColor(score: number): string {
-  if (score >= 8) return "text-emerald-600 dark:text-emerald-400"
-  if (score >= 6) return "text-indigo-600 dark:text-indigo-400"
-  if (score >= 4) return "text-amber-600 dark:text-amber-400"
-  return "text-orange-600 dark:text-orange-400"
-}
-
-// 获取分数对应的背景色
-function getScoreBgColor(score: number): string {
-  if (score >= 8) return "bg-emerald-500/20"
-  if (score >= 6) return "bg-indigo-500/20"
-  if (score >= 4) return "bg-amber-500/20"
-  return "bg-orange-500/20"
 }
 
 // 维度卡片组件
@@ -83,30 +66,6 @@ function DimensionCard({
   )
 }
 
-// 雷达图简化版 - 使用进度条展示
-function DimensionRadar({ dimensions }: { dimensions: AssessmentDimension[] }) {
-  return (
-    <div className="space-y-3">
-      {dimensions.map((dim) => (
-        <div key={dim.id} className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-neutral-600 dark:text-neutral-300">{dim.name}</span>
-            <span className={`text-sm font-medium ${getScoreColor(dim.score)}`}>
-              {dim.score}/10
-            </span>
-          </div>
-          <div className="h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${getScoreBgColor(dim.score).replace('/20', '')}`}
-              style={{ width: `${dim.score * 10}%` }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 export function AssessmentAnalysis({ assessmentData, onContinue }: AssessmentAnalysisProps) {
   const { subjectName, dimensions, strengths, weaknesses } = assessmentData
 
@@ -140,15 +99,6 @@ export function AssessmentAnalysis({ assessmentData, onContinue }: AssessmentAna
             <p className="text-4xl font-bold text-white">{avgScore.toFixed(1)}</p>
           </div>
         </div>
-      </Card>
-
-      {/* 能力雷达 */}
-      <Card className="bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-          <h3 className="text-lg font-semibold text-neutral-950 dark:text-white">能力分布</h3>
-        </div>
-        <DimensionRadar dimensions={dimensions} />
       </Card>
 
       {/* 优势和劣势卡片 */}
