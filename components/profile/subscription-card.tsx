@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { formatDate } from "@/lib/utils/format-date"
-import { useAuth, getAccessToken } from "@/components/auth/auth-provider"
+import { isChinaRegion } from "@/lib/config/region"
+import { useAuth as useAuthCN, getAccessToken } from "@/components/auth/auth-provider"
+import { useUserIntl } from "@/components/user-context-intl"
 import {
   Crown,
   CheckCircle,
@@ -14,6 +16,9 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react"
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 interface Subscription {
   id: string

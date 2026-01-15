@@ -24,7 +24,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { useAuth } from "@/components/auth/auth-provider"
+import { isChinaRegion } from "@/lib/config/region"
+import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
+import { useUserIntl } from "@/components/user-context-intl"
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator"
 import { validatePassword } from "@/lib/utils/password-strength"
 import {
@@ -37,6 +39,9 @@ import {
   AlertCircle,
   AlertTriangle,
 } from "lucide-react"
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 export function AccountSettings() {
   const { logout } = useAuth()

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, getAccessToken } from "@/components/auth/auth-provider";
+import { isChinaRegion } from "@/lib/config/region";
+import { useAuth as useAuthCN, getAccessToken } from "@/components/auth/auth-provider";
+import { useUserIntl } from "@/components/user-context-intl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +18,9 @@ import {
   ArrowLeft,
   AlertCircle
 } from "lucide-react";
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 type BillingCycle = "monthly" | "yearly";
 type PaymentProvider = "stripe" | "paypal";

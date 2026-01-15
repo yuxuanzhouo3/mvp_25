@@ -10,9 +10,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator"
 import { validatePassword } from "@/lib/utils/password-strength"
-import { useAuth } from "@/components/auth/auth-provider"
+import { isChinaRegion } from "@/lib/config/region"
+import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
+import { useUserIntl } from "@/components/user-context-intl"
 import { Mail, Lock, User, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 interface UnifiedAuthFormProps {
   defaultTab?: "login" | "register"

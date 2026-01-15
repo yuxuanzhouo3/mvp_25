@@ -13,8 +13,13 @@ import {
   Menu,
   ChevronLeft,
 } from "lucide-react"
-import { useAuth } from "@/components/auth/auth-provider"
+import { isChinaRegion } from "@/lib/config/region"
+import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
+import { useUserIntl } from "@/components/user-context-intl"
 import { useState } from "react"
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 interface NavigationItem {
   title: string

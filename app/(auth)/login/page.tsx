@@ -3,10 +3,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { UnifiedAuthForm } from "@/components/auth/unified-auth-form"
 import { WechatLoginButton } from "@/components/auth/wechat-login-button"
+import { GoogleLoginButton } from "@/components/auth/google-login-button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useState } from "react"
 import { AlertCircle } from "lucide-react"
 import { isChinaRegion } from "@/lib/config/region"
+import { useSearchParams } from "next/navigation"
 
 // Logo 组件
 function AppLogo() {
@@ -31,6 +33,26 @@ function AppLogo() {
 export default function LoginPage() {
   const [wechatError, setWechatError] = useState("")
   const isCN = isChinaRegion()
+  const searchParams = useSearchParams()
+  const oauthError = searchParams.get('error')
+
+  // OAuth 错误消息映射
+  const getOAuthErrorMessage = (error: string | null): string => {
+    if (!error) return ""
+
+    switch (error) {
+      case 'missing_code':
+        return 'OAuth code missing. Please try again.'
+      case 'callback_failed':
+        return 'Login failed. Please try again.'
+      case 'region_mismatch':
+        return 'This login method is not available in your region.'
+      case 'user_cancelled':
+        return 'Login was cancelled. Please try again if you wish to continue.'
+      default:
+        return error
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -48,7 +70,15 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-6 pt-4">
-          {/* 微信登录（仅国内版显示，放在表单外面避免触发表单验证） */}
+          {/* OAuth 错误提示（显示在最上方） */}
+          {oauthError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{getOAuthErrorMessage(oauthError)}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* 微信登录（仅国内版显示） */}
           {isCN && (
             <div className="space-y-4">
               <WechatLoginButton
@@ -74,6 +104,25 @@ export default function LoginPage() {
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">
                     或使用邮箱登录
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Google 登录（仅国际版显示） */}
+          {!isCN && (
+            <div className="space-y-4">
+              <GoogleLoginButton />
+
+              {/* 分隔线 */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">
+                    Or continue with email
                   </span>
                 </div>
               </div>

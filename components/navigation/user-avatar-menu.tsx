@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useAuth } from "@/components/auth/auth-provider"
+import { isChinaRegion } from "@/lib/config/region"
+import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
+import { useUserIntl } from "@/components/user-context-intl"
 import {
   User,
   CreditCard,
@@ -11,6 +13,9 @@ import {
   Settings,
   LogOut,
 } from "lucide-react"
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 const menuItems = [
   { title: "个人信息", icon: User, href: "/profile" },

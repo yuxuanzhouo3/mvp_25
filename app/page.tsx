@@ -16,9 +16,14 @@ import { Badge } from "@/components/ui/badge"
 import { Crown, Share2, TrendingUp, Brain, Loader2, Home } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AiCoachModal } from "@/components/ai-coach-modal"
-import { useAuth } from "@/components/auth/auth-provider"
+import { isChinaRegion } from "@/lib/config/region"
+import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
+import { useUserIntl } from "@/components/user-context-intl"
 import { UserAvatarMenu } from "@/components/navigation/user-avatar-menu"
 import { ModeToggle } from "@/components/ModeToggle"
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 interface UserSkills {
   [category: string]: {

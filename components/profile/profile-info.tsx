@@ -7,9 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useAuth, getAccessToken } from "@/components/auth/auth-provider"
+import { isChinaRegion } from "@/lib/config/region"
+import { useAuth as useAuthCN, getAccessToken } from "@/components/auth/auth-provider"
+import { useUserIntl } from "@/components/user-context-intl"
 import { formatDate } from "@/lib/utils/format-date"
 import { Loader2, CheckCircle, AlertCircle, Pencil, X, Upload } from "lucide-react"
+
+// 根据区域选择正确的 hook
+const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 export function ProfileInfo() {
   const { user } = useAuth()
