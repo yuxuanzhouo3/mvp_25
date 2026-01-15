@@ -9,17 +9,18 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowRight, ArrowLeft, Upload, Search, Loader2, Zap, Brain, ChevronRight } from "lucide-react"
 import { getSubjectDimensions, type SubjectDimension } from "@/lib/subject-dimensions"
 import { analyzeAssessmentResult } from "@/lib/types/assessment"
+import { useT } from "@/lib/i18n"
 
 interface DynamicSkillAssessmentProps {
   onComplete?: (subject: string, ratings: Record<string, number>) => void
 }
 
 // 获取等级标签
-function getLevelLabel(score: number): { label: string; color: string } {
-  if (score <= 3) return { label: "入门阶段 - 需要系统学习", color: "text-orange-500 dark:text-orange-400" }
-  if (score <= 6) return { label: "进阶阶段 - 能够独立完成基本任务", color: "text-indigo-600 dark:text-indigo-400" }
-  if (score <= 8) return { label: "熟练阶段 - 可以处理复杂问题", color: "text-emerald-600 dark:text-emerald-400" }
-  return { label: "精通阶段 - 专家级别", color: "text-violet-600 dark:text-violet-400" }
+function getLevelLabel(score: number, t: ReturnType<typeof useT>): { label: string; color: string } {
+  if (score <= 3) return { label: t.assessment.levels.beginner, color: "text-orange-500 dark:text-orange-400" }
+  if (score <= 6) return { label: t.assessment.levels.intermediate, color: "text-indigo-600 dark:text-indigo-400" }
+  if (score <= 8) return { label: t.assessment.levels.advanced, color: "text-emerald-600 dark:text-emerald-400" }
+  return { label: t.assessment.levels.expert, color: "text-violet-600 dark:text-violet-400" }
 }
 
 // 每页显示的维度数量
@@ -27,12 +28,23 @@ const DIMENSIONS_PER_PAGE = 5
 
 export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentProps) {
   const router = useRouter()
+  const t = useT()
   const [subjectInput, setSubjectInput] = useState("")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [currentSubject, setCurrentSubject] = useState<string | null>(null)
   const [dimensions, setDimensions] = useState<SubjectDimension[]>([])
   const [ratings, setRatings] = useState<Record<string, number>>({})
   const [currentPage, setCurrentPage] = useState(1)
+
+  // 快捷科目标签配置
+  const quickSubjects = [
+    { key: "gradMath", label: t.assessment.subjects.gradMath },
+    { key: "gradEnglish", label: t.assessment.subjects.gradEnglish },
+    { key: "gradPolitics", label: t.assessment.subjects.gradPolitics },
+    { key: "cet4", label: t.assessment.subjects.cet4 },
+    { key: "cet6", label: t.assessment.subjects.cet6 },
+    { key: "ncre2", label: t.assessment.subjects.ncre2 },
+  ]
 
   // 计算总页数
   const totalPages = Math.ceil(dimensions.length / DIMENSIONS_PER_PAGE)
@@ -138,17 +150,17 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
       {/* 输入区域 - 极简白色卡片 */}
       <Card className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 p-6 rounded-2xl">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-3xl font-bold text-neutral-900 dark:text-white">今天你想攻克什么考试？</h2>
+          <h2 className="text-3xl font-bold text-neutral-900 dark:text-white">{t.assessment.title}</h2>
           {currentSubject && (
             <button
               onClick={handleChangeSubject}
               className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
-              切换科目
+              {t.assessment.switchSubject}
             </button>
           )}
         </div>
-        <p className="text-neutral-600 dark:text-neutral-300 text-base mb-5">AI 将根据你的目标，自动构建能力评估模型。</p>
+        <p className="text-neutral-600 dark:text-neutral-300 text-base mb-5">{t.assessment.subtitle}</p>
 
         {/* 科目输入框 */}
         <div className="relative">
@@ -156,7 +168,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
             value={subjectInput}
             onChange={(e) => setSubjectInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入目标，如：考研数学"
+            placeholder={t.assessment.inputPlaceholder}
             className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400 pr-14 h-14 text-xl font-medium rounded-xl"
             disabled={isAnalyzing}
           />
@@ -178,14 +190,14 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
 
         {/* 快捷科目标签 */}
         <div className="flex flex-wrap gap-2 mt-4">
-          {["考研数学", "考研英语", "考研政治", "大学英语四级", "大学英语六级", "计算机二级"].map((subject) => (
+          {quickSubjects.map((subject) => (
             <button
-              key={subject}
-              onClick={() => setSubjectInput(subject)}
+              key={subject.key}
+              onClick={() => setSubjectInput(subject.label)}
               className="px-4 py-2 text-base font-medium text-neutral-700 dark:text-neutral-200 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700
                        border border-neutral-200 dark:border-neutral-700 rounded-full transition-all duration-200 cursor-pointer"
             >
-              {subject}
+              {subject.label}
             </button>
           ))}
         </div>
@@ -199,7 +211,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                        flex items-center justify-center"
           >
             <Upload className="w-4 h-4 mr-2" />
-            上传题目
+            {t.assessment.uploadQuestions}
           </Badge>
           <Badge
             onClick={handleSearchClick}
@@ -208,7 +220,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                        flex items-center justify-center"
           >
             <Search className="w-4 h-4 mr-2" />
-            搜题直达
+            {t.assessment.searchQuestions}
           </Badge>
         </div>
       </Card>
@@ -221,9 +233,9 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                           flex items-center justify-center mb-6 border border-neutral-200 dark:border-neutral-700">
               <Brain className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-2">等待设定目标</h3>
+            <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-2">{t.assessment.waitingTitle}</h3>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center max-w-xs">
-              在上方输入科目后，AI 将为你定制专属的知识点评分维度。
+              {t.assessment.waitingDesc}
             </p>
           </div>
         </Card>
@@ -266,14 +278,14 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
           <div className="flex items-center justify-between mb-6">
             <div>
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-semibold text-neutral-950 dark:text-white">{currentSubject} · 技能诊断</h3>
+                <h3 className="text-lg font-semibold text-neutral-950 dark:text-white">{currentSubject} · {t.assessment.skillDiagnosis}</h3>
                 <Badge variant="outline" className="border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-xs">
                   <Zap className="w-3 h-3 mr-1" />
                   {Object.keys(ratings).length}/{dimensions.length}
                 </Badge>
               </div>
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                请评估你在以下技能的熟练程度 (1-10分) · 第 {currentPage}/{totalPages} 页
+                {t.assessment.rateSkills} · {t.assessment.pageOf.replace("{current}", String(currentPage)).replace("{total}", String(totalPages))}
               </p>
             </div>
           </div>
@@ -281,7 +293,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
           <div className="space-y-8">
             {currentPageDimensions.map((dimension) => {
               const currentRating = ratings[dimension.id]
-              const levelInfo = currentRating ? getLevelLabel(currentRating) : null
+              const levelInfo = currentRating ? getLevelLabel(currentRating, t) : null
 
               return (
                 <div key={dimension.id} className="space-y-3">
@@ -355,7 +367,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                            flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                  <span>上一步</span>
+                  <span>{t.assessment.prevStep}</span>
                 </button>
               )}
               <button
@@ -368,7 +380,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                              : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 cursor-not-allowed"
                            }`}
               >
-                <span className="text-lg">下一步</span>
+                <span className="text-lg">{t.assessment.nextStep}</span>
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
@@ -383,7 +395,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                            flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <ArrowLeft className="w-5 h-5" />
-                  <span>上一步</span>
+                  <span>{t.assessment.prevStep}</span>
                 </button>
                 <button
                   onClick={handleGenerateExam}
@@ -396,7 +408,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                              }`}
                 >
                   <Zap className="w-5 h-5" />
-                  <span className="text-lg">生成我的专属考题</span>
+                  <span className="text-lg">{t.assessment.generateQuestions}</span>
                 </button>
               </div>
             </div>

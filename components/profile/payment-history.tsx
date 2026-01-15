@@ -14,6 +14,8 @@ import {
 import { formatDateTime } from "@/lib/utils/format-date"
 import { getAccessToken } from "@/components/auth/auth-provider"
 import { Receipt, Loader2 } from "lucide-react"
+import { useT } from "@/lib/i18n"
+import { isChinaRegion } from "@/lib/config/region"
 
 interface Payment {
   id: string
@@ -26,20 +28,6 @@ interface Payment {
   createdAt: string
 }
 
-const providerLabels: Record<string, string> = {
-  wechat: "微信支付",
-  alipay: "支付宝",
-  stripe: "Stripe",
-  paypal: "PayPal",
-}
-
-const statusLabels: Record<string, string> = {
-  pending: "处理中",
-  completed: "已完成",
-  failed: "失败",
-  refunded: "已退款",
-}
-
 const statusColors: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
   completed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
@@ -48,8 +36,23 @@ const statusColors: Record<string, string> = {
 }
 
 export function PaymentHistory() {
+  const t = useT()
   const [payments, setPayments] = useState<Payment[]>([])
   const [isLoading, setIsLoading] = useState(true)
+
+  const providerLabels: Record<string, string> = {
+    wechat: t.payment.wechat,
+    alipay: t.payment.alipay,
+    stripe: t.payment.stripe,
+    paypal: t.payment.paypal,
+  }
+
+  const statusLabels: Record<string, string> = {
+    pending: t.payment.statusPending,
+    completed: t.payment.statusCompleted,
+    failed: t.payment.statusFailed,
+    refunded: t.payment.statusRefunded,
+  }
 
   useEffect(() => {
     fetchPayments()
@@ -74,16 +77,17 @@ export function PaymentHistory() {
         setPayments(data.payments || [])
       }
     } catch (error) {
-      console.error("获取支付记录失败:", error)
+      console.error("Failed to fetch payments:", error)
     } finally {
       setIsLoading(false)
     }
   }
 
   const formatAmount = (amount: number, currency: string) => {
-    const formatter = new Intl.NumberFormat("zh-CN", {
+    const locale = isChinaRegion() ? "zh-CN" : "en-US"
+    const formatter = new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: currency || "CNY",
+      currency: currency || (isChinaRegion() ? "CNY" : "USD"),
     })
     return formatter.format(amount)
   }
@@ -101,17 +105,17 @@ export function PaymentHistory() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>支付记录</CardTitle>
-        <CardDescription>查看您的所有交易记录</CardDescription>
+        <CardTitle>{t.payment.history}</CardTitle>
+        <CardDescription>{t.payment.viewHistory}</CardDescription>
       </CardHeader>
 
       <CardContent>
         {payments.length === 0 ? (
           <div className="text-center py-12">
             <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">暂无支付记录</p>
+            <p className="text-muted-foreground">{t.payment.noRecords}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              升级专业版后，支付记录将显示在这里
+              {t.payment.upgradeToSeeRecords}
             </p>
           </div>
         ) : (
@@ -119,11 +123,11 @@ export function PaymentHistory() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>订单号</TableHead>
-                  <TableHead>金额</TableHead>
-                  <TableHead>支付方式</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>时间</TableHead>
+                  <TableHead>{t.payment.orderId}</TableHead>
+                  <TableHead>{t.payment.amount}</TableHead>
+                  <TableHead>{t.payment.paymentMethod}</TableHead>
+                  <TableHead>{t.payment.status}</TableHead>
+                  <TableHead>{t.payment.time}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

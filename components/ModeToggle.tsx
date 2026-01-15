@@ -11,28 +11,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useT } from "@/lib/i18n"
 
 export function ModeToggle() {
   const { setTheme } = useTheme()
+  const t = useT()
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9">
+        <Button
+          variant="outline"
+          className="h-10 px-4 border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+        >
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">切换主题</span>
+          <span className="ml-2 text-sm font-medium">{t.theme.toggle}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          浅色
+          {t.theme.light}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          深色
+          {t.theme.dark}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          跟随系统
+          {t.theme.system}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

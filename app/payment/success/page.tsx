@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CheckCircle, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { getAccessToken } from "@/components/auth/auth-provider";
+import { useT } from "@/lib/i18n";
 
 function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useT();
   const [showContent, setShowContent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<"pending" | "success" | "error">("pending");
@@ -183,8 +185,8 @@ function PaymentSuccessContent() {
       <Card className="w-full max-w-md">
         <CardContent className="py-12 text-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
-          <p className="text-lg font-medium">Verifying your payment...</p>
-          <p className="text-sm text-muted-foreground mt-2">Please wait a moment</p>
+          <p className="text-lg font-medium">{t.payment.verifying}</p>
+          <p className="text-sm text-muted-foreground mt-2">{t.payment.pleaseWait}</p>
         </CardContent>
       </Card>
     );
@@ -198,17 +200,17 @@ function PaymentSuccessContent() {
           <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <AlertCircle className="w-10 h-10 text-red-600" />
           </div>
-          <CardTitle className="text-2xl text-red-600">Payment Verification Failed</CardTitle>
+          <CardTitle className="text-2xl text-red-600">{t.payment.verificationFailed}</CardTitle>
           <CardDescription>
-            {errorMessage || "We couldn't verify your payment. Please contact support."}
+            {errorMessage || t.payment.contactSupport}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button variant="outline" className="w-full" onClick={() => router.push("/payment/intl")}>
-            Try Again
+            {t.payment.tryAgain}
           </Button>
           <Button variant="outline" className="w-full" onClick={handleGoHome}>
-            Return Home
+            {t.payment.returnHome}
           </Button>
         </CardContent>
       </Card>
@@ -224,9 +226,9 @@ function PaymentSuccessContent() {
         <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
           <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
-        <CardTitle className="text-2xl text-green-600">Payment Successful!</CardTitle>
+        <CardTitle className="text-2xl text-green-600">{t.payment.success}!</CardTitle>
         <CardDescription>
-          Thank you for your support. Your membership is now active.
+          {t.payment.thankYou}
         </CardDescription>
       </CardHeader>
 
@@ -234,40 +236,40 @@ function PaymentSuccessContent() {
         {/* Membership Info */}
         <div className="p-4 bg-muted rounded-lg space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Membership Status</span>
-            <span className="text-sm font-medium text-green-600">Active</span>
+            <span className="text-sm text-muted-foreground">{t.payment.membershipStatus}</span>
+            <span className="text-sm font-medium text-green-600">{t.payment.active}</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-muted-foreground">Plan</span>
-            <span className="text-sm font-medium">Premium</span>
+            <span className="text-sm text-muted-foreground">{t.payment.plan}</span>
+            <span className="text-sm font-medium">{t.payment.premium}</span>
           </div>
         </div>
 
         {/* Benefits */}
         <div className="text-center text-sm text-muted-foreground">
-          <p>You now have access to:</p>
+          <p>{t.payment.youHaveAccess}</p>
           <ul className="mt-2 space-y-1">
-            <li>✓ Unlimited AI Question Generation</li>
-            <li>✓ Smart Paper Composition</li>
-            <li>✓ Difficulty Analysis</li>
-            <li>✓ Personalized Teaching Suggestions</li>
+            <li>✓ {t.payment.unlimitedAI}</li>
+            <li>✓ {t.payment.smartComposition}</li>
+            <li>✓ {t.payment.difficultyAnalysis}</li>
+            <li>✓ {t.payment.personalizedAdvice}</li>
           </ul>
         </div>
 
         {/* Buttons */}
         <div className="space-y-3">
           <Button className="w-full" onClick={handleStartUsing}>
-            Start Using
+            {t.payment.startUsing}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           <Button variant="outline" className="w-full" onClick={handleGoHome}>
-            Return Home
+            {t.payment.returnHome}
           </Button>
         </div>
 
         {/* Support Note */}
         <p className="text-xs text-center text-muted-foreground">
-          If you have any questions, please contact our support team.
+          {t.payment.contactSupport}
         </p>
       </CardContent>
     </Card>

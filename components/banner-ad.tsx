@@ -4,12 +4,14 @@ import { useState, useEffect } from "react"
 import { Crown, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { useT } from "@/lib/i18n"
 
 interface BannerAdProps {
   onUpgrade: () => void
 }
 
 export function BannerAd({ onUpgrade }: BannerAdProps) {
+  const t = useT()
   const [isVisible, setIsVisible] = useState(true)
 
   // 检查 localStorage 中是否已关闭广告
@@ -41,10 +43,10 @@ export function BannerAd({ onUpgrade }: BannerAdProps) {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-1">
-              升级到 Premium，解锁全部功能
+              {t.banner.upgradeTitle}
             </h3>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              享受 AI 教练无限次使用、专属学习路径定制、高级数据分析等更多特权
+              {t.banner.upgradeDesc}
             </p>
           </div>
         </div>
@@ -55,14 +57,14 @@ export function BannerAd({ onUpgrade }: BannerAdProps) {
             onClick={onUpgrade}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 whitespace-nowrap"
           >
-            立即升级
+            {t.banner.upgradeNow}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleClose}
             className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 flex-shrink-0"
-            aria-label="关闭广告"
+            aria-label={t.banner.closeAd}
           >
             <X className="w-5 h-5" />
           </Button>

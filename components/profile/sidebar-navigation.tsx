@@ -17,38 +17,10 @@ import { isChinaRegion } from "@/lib/config/region"
 import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
 import { useUserIntl } from "@/components/user-context-intl"
 import { useState } from "react"
+import { useT } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
-
-interface NavigationItem {
-  title: string
-  icon: React.ElementType
-  href: string
-}
-
-const navigationItems: NavigationItem[] = [
-  {
-    title: "个人信息",
-    icon: User,
-    href: "/profile",
-  },
-  {
-    title: "订阅管理",
-    icon: CreditCard,
-    href: "/profile/subscription",
-  },
-  {
-    title: "支付记录",
-    icon: Receipt,
-    href: "/profile/payments",
-  },
-  {
-    title: "账户设置",
-    icon: Settings,
-    href: "/profile/settings",
-  },
-]
 
 interface SidebarNavigationProps {
   className?: string
@@ -58,7 +30,31 @@ export function SidebarNavigation({ className }: SidebarNavigationProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { logout } = useAuth()
+  const t = useT()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const navigationItems = [
+    {
+      title: t.profile.personalInfo,
+      icon: User,
+      href: "/profile",
+    },
+    {
+      title: t.subscription.title,
+      icon: CreditCard,
+      href: "/profile/subscription",
+    },
+    {
+      title: t.profile.paymentRecords,
+      icon: Receipt,
+      href: "/profile/payments",
+    },
+    {
+      title: t.profile.settings,
+      icon: Settings,
+      href: "/profile/settings",
+    },
+  ]
 
   const handleLogout = async () => {
     await logout()
@@ -80,7 +76,7 @@ export function SidebarNavigation({ className }: SidebarNavigationProps) {
           onClick={() => router.push("/")}
         >
           <ChevronLeft className="h-4 w-4" />
-          返回首页
+          {t.profile.backToHome}
         </Button>
       </div>
 
@@ -113,7 +109,7 @@ export function SidebarNavigation({ className }: SidebarNavigationProps) {
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" />
-          退出登录
+          {t.profile.logout}
         </Button>
       </div>
     </>
@@ -137,7 +133,7 @@ export function SidebarNavigation({ className }: SidebarNavigationProps) {
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="bg-background">
               <Menu className="h-5 w-5" />
-              <span className="sr-only">打开菜单</span>
+              <span className="sr-only">{t.profile.openMenu}</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">

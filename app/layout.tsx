@@ -6,9 +6,11 @@ import { UserProviderIntl } from '@/components/user-context-intl'
 import { ThemeProvider } from '@/components/theme-provider'
 import { isChinaRegion } from '@/lib/config/region'
 
+const isChina = isChinaRegion()
+
 export const metadata: Metadata = {
-  title: 'AI 教师助手',
-  description: '智能教学辅助平台',
+  title: isChina ? 'AI 教师助手' : 'AI Teacher Assistant',
+  description: isChina ? '智能教学辅助平台' : 'Smart Teaching Platform',
   generator: 'v0.dev',
 }
 
@@ -17,10 +19,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const isChina = isChinaRegion()
-
   return (
-    <html lang="zh-CN" suppressHydrationWarning>
+    <html lang={isChina ? "zh-CN" : "en"} suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           {isChina ? (

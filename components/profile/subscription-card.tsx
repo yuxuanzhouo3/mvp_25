@@ -16,6 +16,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react"
+import { useT } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
@@ -30,25 +31,20 @@ interface Subscription {
   autoRenew: boolean
 }
 
-interface PlanFeature {
-  name: string
-  free: string | boolean
-  pro: string | boolean
-}
-
-const planFeatures: PlanFeature[] = [
-  { name: "每日评估次数", free: "3次", pro: "无限" },
-  { name: "AI 对话次数", free: "10次", pro: "无限" },
-  { name: "高级分析报告", free: false, pro: true },
-  { name: "个性化学习路径", free: false, pro: true },
-  { name: "导出报告", free: false, pro: true },
-  { name: "优先客服支持", free: false, pro: true },
-]
-
 export function SubscriptionCard() {
   const { user } = useAuth()
+  const t = useT()
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const planFeatures = [
+    { name: t.subscription.dailyAssessments, free: `3${t.subscription.times}`, pro: t.subscription.unlimited },
+    { name: t.subscription.aiConversations, free: `10${t.subscription.times}`, pro: t.subscription.unlimited },
+    { name: t.subscription.advancedReports, free: false, pro: true },
+    { name: t.subscription.personalizedPath, free: false, pro: true },
+    { name: t.subscription.exportReports, free: false, pro: true },
+    { name: t.subscription.prioritySupport, free: false, pro: true },
+  ]
 
   useEffect(() => {
     fetchSubscription()
@@ -73,7 +69,7 @@ export function SubscriptionCard() {
         setSubscription(data.subscription)
       }
     } catch (error) {
-      console.error("获取订阅信息失败:", error)
+      console.error("Failed to fetch subscription:", error)
     } finally {
       setIsLoading(false)
     }
@@ -105,8 +101,8 @@ export function SubscriptionCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>订阅状态</CardTitle>
-        <CardDescription>管理您的订阅计划</CardDescription>
+        <CardTitle>{t.subscription.subscriptionStatus}</CardTitle>
+        <CardDescription>{t.subscription.managePlan}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -131,12 +127,12 @@ export function SubscriptionCard() {
               )}
               <div>
                 <h3 className="font-semibold text-lg">
-                  {isPro ? "专业版" : "免费版"}
+                  {isPro ? t.subscription.proPlan : t.subscription.freePlan}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {subscription && isActive
-                    ? `有效期至: ${formatDate(subscription.endDate)}`
-                    : "暂无有效订阅"
+                    ? `${t.subscription.validUntil} ${formatDate(subscription.endDate)}`
+                    : t.subscription.noActiveSubscription
                   }
                 </p>
               </div>
@@ -150,7 +146,7 @@ export function SubscriptionCard() {
                   : ""
               }
             >
-              {isActive ? "已激活" : subscription ? "已过期" : "未订阅"}
+              {isActive ? t.subscription.activated : subscription ? t.subscription.expired : t.subscription.notSubscribed}
             </Badge>
           </div>
 
@@ -158,7 +154,7 @@ export function SubscriptionCard() {
           {subscription?.autoRenew && isActive && (
             <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
               <CheckCircle className="w-3 h-3 text-green-500" />
-              已开启自动续费
+              {t.subscription.autoRenewEnabled}
             </p>
           )}
         </div>
@@ -170,15 +166,15 @@ export function SubscriptionCard() {
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
           >
             <Crown className="mr-2 h-4 w-4" />
-            升级到专业版
+            {t.subscription.upgradeToPro}
           </Button>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={handleRenew} className="cursor-pointer">
-              续费订阅
+              {t.subscription.renewSubscription}
             </Button>
             <Button variant="ghost" className="text-muted-foreground cursor-pointer">
-              取消订阅
+              {t.subscription.cancel}
             </Button>
           </div>
         )}
@@ -187,7 +183,7 @@ export function SubscriptionCard() {
 
         {/* 套餐权益对比 */}
         <div className="space-y-3">
-          <h4 className="font-medium text-sm">套餐权益</h4>
+          <h4 className="font-medium text-sm">{t.subscription.planBenefits}</h4>
           <ul className="space-y-2 text-sm">
             {planFeatures.map((feature) => {
               const currentValue = isPro ? feature.pro : feature.free
@@ -220,7 +216,7 @@ export function SubscriptionCard() {
         {!isPro && (
           <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">
             <p className="text-sm text-purple-800 dark:text-purple-200">
-              升级专业版，解锁全部功能，享受无限制的 AI 评估和个性化学习路径！
+              {t.subscription.upgradeProTip}
             </p>
           </div>
         )}

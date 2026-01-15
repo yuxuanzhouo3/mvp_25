@@ -12,12 +12,14 @@ import { useAuth as useAuthCN, getAccessToken } from "@/components/auth/auth-pro
 import { useUserIntl } from "@/components/user-context-intl"
 import { formatDate } from "@/lib/utils/format-date"
 import { Loader2, CheckCircle, AlertCircle, Pencil, X, Upload } from "lucide-react"
+import { useT } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 export function ProfileInfo() {
   const { user } = useAuth()
+  const t = useT()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
@@ -35,13 +37,13 @@ export function ProfileInfo() {
 
     // 验证文件类型
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("仅支持 JPG、PNG、WebP 格式的图片")
+      setError(t.profile.avatarFormatError)
       return
     }
 
     // 验证文件大小
     if (file.size > 2 * 1024 * 1024) {
-      setError("图片大小不能超过 2MB")
+      setError(t.profile.avatarSizeError)
       return
     }
 
@@ -72,17 +74,17 @@ export function ProfileInfo() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "上传失败")
+        throw new Error(data.error || t.profile.uploadFailed)
       }
 
-      setSuccess("头像更新成功")
+      setSuccess(t.profile.avatarUpdateSuccess)
 
       // 刷新页面以获取最新数据
       setTimeout(() => {
         window.location.reload()
       }, 1500)
     } catch (err: any) {
-      setError(err.message || "上传失败，请重试")
+      setError(err.message || t.profile.uploadFailed)
       setAvatarPreview(null)
     } finally {
       setIsUploadingAvatar(false)
@@ -108,10 +110,10 @@ export function ProfileInfo() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "更新失败")
+        throw new Error(data.error || t.profile.updateFailed)
       }
 
-      setSuccess("个人信息更新成功")
+      setSuccess(t.profile.profileUpdateSuccess)
       setIsEditing(false)
 
       // 刷新页面以获取最新数据
@@ -119,7 +121,7 @@ export function ProfileInfo() {
         window.location.reload()
       }, 1500)
     } catch (err: any) {
-      setError(err.message || "更新失败，请重试")
+      setError(err.message || t.profile.updateFailed)
     } finally {
       setIsLoading(false)
     }
@@ -145,8 +147,8 @@ export function ProfileInfo() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>个人信息</CardTitle>
-        <CardDescription>管理您的个人资料</CardDescription>
+        <CardTitle>{t.profile.personalInfo}</CardTitle>
+        <CardDescription>{t.profile.manageProfile}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -155,7 +157,7 @@ export function ProfileInfo() {
           <Avatar className="h-20 w-20">
             <AvatarImage
               src={avatarPreview || user?.avatar}
-              alt={user?.name || "用户头像"}
+              alt={user?.name || t.profile.username}
             />
             <AvatarFallback className="text-2xl bg-primary/10 text-primary">
               {getAvatarFallback()}
@@ -178,17 +180,17 @@ export function ProfileInfo() {
               {isUploadingAvatar ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  上传中...
+                  {t.profile.uploading}
                 </>
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  更换头像
+                  {t.profile.changeAvatar}
                 </>
               )}
             </Button>
             <p className="text-xs text-muted-foreground mt-1">
-              支持 JPG、PNG 格式，最大 2MB
+              {t.profile.avatarFormats}
             </p>
           </div>
         </div>
@@ -212,34 +214,34 @@ export function ProfileInfo() {
         <div className="space-y-4">
           {/* 用户名 */}
           <div className="grid grid-cols-3 gap-2 items-center">
-            <Label className="text-muted-foreground">用户名</Label>
+            <Label className="text-muted-foreground">{t.profile.username}</Label>
             {isEditing ? (
               <div className="col-span-2">
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="请输入用户名"
+                  placeholder={t.profile.enterUsername}
                   disabled={isLoading}
                 />
               </div>
             ) : (
               <span className="col-span-2 font-medium">
-                {user?.name || "未设置"}
+                {user?.name || t.profile.notSet}
               </span>
             )}
           </div>
 
           {/* 邮箱 */}
           <div className="grid grid-cols-3 gap-2 items-center">
-            <Label className="text-muted-foreground">邮箱</Label>
-            <span className="col-span-2 font-medium">{user?.email || "未设置"}</span>
+            <Label className="text-muted-foreground">{t.profile.email}</Label>
+            <span className="col-span-2 font-medium">{user?.email || t.profile.notSet}</span>
           </div>
 
           {/* 用户ID */}
           <div className="grid grid-cols-3 gap-2 items-center">
-            <Label className="text-muted-foreground">用户 ID</Label>
+            <Label className="text-muted-foreground">{t.profile.userId}</Label>
             <span className="col-span-2 text-sm font-mono text-muted-foreground">
-              {user?.id || "未知"}
+              {user?.id || t.profile.unknown}
             </span>
           </div>
         </div>
@@ -252,24 +254,24 @@ export function ProfileInfo() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
+                    {t.profile.saving}
                   </>
                 ) : (
                   <>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    保存更改
+                    {t.profile.saveChanges}
                   </>
                 )}
               </Button>
               <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
                 <X className="mr-2 h-4 w-4" />
-                取消
+                {t.common.cancel}
               </Button>
             </>
           ) : (
             <Button onClick={() => setIsEditing(true)} className="w-full">
               <Pencil className="mr-2 h-4 w-4" />
-              编辑个人信息
+              {t.profile.editPersonalInfo}
             </Button>
           )}
         </div>

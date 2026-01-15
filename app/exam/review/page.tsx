@@ -7,11 +7,13 @@ import { Card } from "@/components/ui/card"
 import { ArrowLeft, Play, BookOpen, Target, TrendingUp } from "lucide-react"
 import { WrongBook } from "@/components/exam/WrongBook"
 import type { WrongQuestion, Question } from "@/lib/exam-mock-data"
+import { useT } from "@/lib/i18n"
 
 export default function ReviewPage() {
   const router = useRouter()
+  const t = useT()
   const [wrongQuestions, setWrongQuestions] = useState<WrongQuestion[]>([])
-  const [examName, setExamName] = useState("考研数学")
+  const [examName, setExamName] = useState(t.wrongBook.defaultExam)
 
   // 追踪是否已从 localStorage 加载完成
   const isLoaded = useRef(false)
@@ -34,7 +36,7 @@ export default function ReviewPage() {
     if (savedExam) {
       try {
         const exam = JSON.parse(savedExam)
-        setExamName(exam.examName || "考研数学")
+        setExamName(exam.examName || t.wrongBook.defaultExam)
       } catch (e) {
         console.error('Failed to parse exam info')
       }
@@ -96,15 +98,15 @@ export default function ReviewPage() {
               className="flex items-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
-              返回
+              {t.common.back}
             </button>
-            <h1 className="text-xl font-bold text-neutral-950 dark:text-white">错题本</h1>
+            <h1 className="text-xl font-bold text-neutral-950 dark:text-white">{t.wrongBook.title}</h1>
             <Button
               onClick={() => router.push('/exam/practice')}
               className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
               <Play className="w-4 h-4 mr-2" />
-              继续刷题
+              {t.wrongBook.continuePractice}
             </Button>
           </div>
         </div>
@@ -120,8 +122,8 @@ export default function ReviewPage() {
                 <BookOpen className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-neutral-950 dark:text-white">{examName} - 错题本</h2>
-                <p className="text-neutral-500 dark:text-neutral-400 text-sm">系统化复习，攻克薄弱知识点</p>
+                <h2 className="text-xl font-bold text-neutral-950 dark:text-white">{examName} - {t.wrongBook.examWrongBook}</h2>
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm">{t.wrongBook.systematicReview}</p>
               </div>
             </div>
 
@@ -130,7 +132,7 @@ export default function ReviewPage() {
                 <div className="flex items-center gap-2">
                   <Target className="w-4 h-4 text-red-600 dark:text-red-400" />
                   <span className="text-red-600 dark:text-red-400 font-medium">
-                    {stats.highFrequency} 道高频错题需重点关注
+                    {stats.highFrequency} {t.wrongBook.highFrequencyWarning}
                   </span>
                 </div>
               </div>
@@ -144,10 +146,9 @@ export default function ReviewPage() {
             <div className="flex items-start gap-3">
               <TrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
               <div>
-                <p className="text-amber-600 dark:text-amber-400 font-medium">学习建议</p>
+                <p className="text-amber-600 dark:text-amber-400 font-medium">{t.wrongBook.studyAdvice}</p>
                 <p className="text-neutral-600 dark:text-neutral-300 text-sm mt-1">
-                  你还有 {stats.unmastered} 道错题未掌握。建议每天复习 3-5 道错题，
-                  重点关注错 3 次以上的题目。坚持复习，错题本会越来越薄！
+                  {t.wrongBook.studyAdviceText.replace('{count}', String(stats.unmastered))}
                 </p>
               </div>
             </div>

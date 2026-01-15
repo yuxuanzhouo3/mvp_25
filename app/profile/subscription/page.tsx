@@ -1,13 +1,16 @@
 "use client"
 
 import { SubscriptionCard } from "@/components/profile/subscription-card"
+import { useT } from "@/lib/i18n"
 
 export default function SubscriptionPage() {
+  const t = useT()
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">订阅管理</h1>
-        <p className="text-muted-foreground">管理您的订阅计划和权益</p>
+        <h1 className="text-2xl font-bold">{t.subscription.title}</h1>
+        <p className="text-muted-foreground">{t.subscription.features}</p>
       </div>
 
       <SubscriptionCard />

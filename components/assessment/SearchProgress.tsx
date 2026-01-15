@@ -12,6 +12,7 @@ import {
   Loader2
 } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useT } from "@/lib/i18n"
 
 type SearchStep = 'searching' | 'analyzing' | 'generating' | 'completed'
 
@@ -20,17 +21,18 @@ interface SearchProgressProps {
 }
 
 export function SearchProgress({ subjectName }: SearchProgressProps) {
+  const t = useT()
   const [currentStep, setCurrentStep] = useState<SearchStep>('searching')
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
     // 模拟进度更新（每阶段1.5秒）
-    const steps: SearchStep[] = ['searching', 'analyzing', 'generating', 'completed']
+    const stepKeys: SearchStep[] = ['searching', 'analyzing', 'generating', 'completed']
     let stepIndex = 0
 
     const timer = setInterval(() => {
-      if (stepIndex < steps.length) {
-        setCurrentStep(steps[stepIndex])
+      if (stepIndex < stepKeys.length) {
+        setCurrentStep(stepKeys[stepIndex])
         setProgress((stepIndex + 1) * 25)
         stepIndex++
       } else {
@@ -45,26 +47,26 @@ export function SearchProgress({ subjectName }: SearchProgressProps) {
     {
       key: 'searching',
       icon: Globe,
-      title: '联网搜索最新信息',
-      description: `正在搜索 ${subjectName} 2025年考试大纲、题型变化和热点考点`,
+      title: t.searchProgress.steps.search,
+      description: t.searchProgress.steps.searchDesc.replace("{subject}", subjectName),
     },
     {
       key: 'analyzing',
       icon: BookOpen,
-      title: '分析考试趋势',
-      description: 'AI正在分析搜索结果，提取重点考查方向',
+      title: t.searchProgress.steps.analyze,
+      description: t.searchProgress.steps.analyzeDesc,
     },
     {
       key: 'generating',
       icon: Sparkles,
-      title: '生成针对性题目',
-      description: '基于最新考试信息和您的薄弱环节，智能生成题目',
+      title: t.searchProgress.steps.generate,
+      description: t.searchProgress.steps.generateDesc,
     },
     {
       key: 'completed',
       icon: CheckCircle2,
-      title: '生成完成',
-      description: '题目已准备就绪，即将开始练习',
+      title: t.searchProgress.steps.done,
+      description: t.searchProgress.steps.doneDesc,
     }
   ]
 
@@ -81,15 +83,15 @@ export function SearchProgress({ subjectName }: SearchProgressProps) {
             <Search className="w-5 h-5 text-foreground" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">AI 正在智能准备题目</h2>
-            <p className="text-sm text-muted-foreground">基于最新考试信息的个性化出题</p>
+            <h2 className="text-xl font-bold text-foreground">{t.searchProgress.title}</h2>
+            <p className="text-sm text-muted-foreground">{t.searchProgress.subtitle}</p>
           </div>
         </div>
 
         {/* 总体进度条 */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">总体进度</span>
+            <span className="text-muted-foreground">{t.searchProgress.overallProgress}</span>
             <span className="text-foreground font-medium">{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -136,12 +138,12 @@ export function SearchProgress({ subjectName }: SearchProgressProps) {
                     </h3>
                     {isActive && (
                       <Badge className="bg-secondary text-foreground border border-border hover:bg-secondary/80">
-                        进行中
+                        {t.searchProgress.inProgress}
                       </Badge>
                     )}
                     {isCompleted && (
                       <Badge className="bg-secondary text-foreground border border-border hover:bg-secondary/80">
-                        已完成
+                        {t.searchProgress.completed}
                       </Badge>
                     )}
                   </div>
@@ -160,7 +162,7 @@ export function SearchProgress({ subjectName }: SearchProgressProps) {
             <Sparkles className="w-4 h-4 text-foreground" />
           </div>
           <p className="text-sm text-muted-foreground">
-            AI正在联网搜索最新信息，这可能需要几秒钟，请稍候...
+            {t.searchProgress.pleaseWait}
           </p>
         </div>
       </Card>

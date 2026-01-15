@@ -5,10 +5,11 @@ import { UnifiedAuthForm } from "@/components/auth/unified-auth-form"
 import { WechatLoginButton } from "@/components/auth/wechat-login-button"
 import { GoogleLoginButton } from "@/components/auth/google-login-button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useState } from "react"
-import { AlertCircle } from "lucide-react"
+import { useState, Suspense } from "react"
+import { AlertCircle, Loader2 } from "lucide-react"
 import { isChinaRegion } from "@/lib/config/region"
 import { useSearchParams } from "next/navigation"
+import { useT } from "@/lib/i18n"
 
 // Logo 组件
 function AppLogo() {
@@ -31,10 +32,23 @@ function AppLogo() {
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
+  )
+}
+
+function LoginContent() {
   const [wechatError, setWechatError] = useState("")
   const isCN = isChinaRegion()
   const searchParams = useSearchParams()
   const oauthError = searchParams.get('error')
+  const t = useT()
 
   // OAuth 错误消息映射
   const getOAuthErrorMessage = (error: string | null): string => {
@@ -42,13 +56,13 @@ export default function LoginPage() {
 
     switch (error) {
       case 'missing_code':
-        return 'OAuth code missing. Please try again.'
+        return t.oauthErrors.missingCode
       case 'callback_failed':
-        return 'Login failed. Please try again.'
+        return t.oauthErrors.callbackFailed
       case 'region_mismatch':
-        return 'This login method is not available in your region.'
+        return t.oauthErrors.regionMismatch
       case 'user_cancelled':
-        return 'Login was cancelled. Please try again if you wish to continue.'
+        return t.oauthErrors.userCancelled
       default:
         return error
     }
@@ -62,9 +76,9 @@ export default function LoginPage() {
             <AppLogo />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">欢迎回来</CardTitle>
+            <CardTitle className="text-2xl font-bold">{t.auth.welcomeBack}</CardTitle>
             <CardDescription className="mt-1">
-              登录您的 SkillMap 账户
+              {t.auth.loginToAccount}
             </CardDescription>
           </div>
         </CardHeader>
@@ -103,7 +117,7 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">
-                    或使用邮箱登录
+                    {t.auth.orContinueWithEmail}
                   </span>
                 </div>
               </div>
@@ -122,7 +136,7 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">
-                    Or continue with email
+                    {t.auth.orContinueWithEmail}
                   </span>
                 </div>
               </div>
@@ -134,13 +148,13 @@ export default function LoginPage() {
 
           {/* 服务条款提示 */}
           <p className="text-xs text-center text-muted-foreground">
-            登录即表示您同意我们的{" "}
+            {t.auth.termsAgreement}{" "}
             <a href="/terms" className="text-primary hover:underline">
-              服务条款
+              {t.auth.termsOfService}
             </a>{" "}
-            和{" "}
+            {t.common.and}{" "}
             <a href="/privacy" className="text-primary hover:underline">
-              隐私政策
+              {t.auth.privacyPolicy}
             </a>
           </p>
         </CardContent>

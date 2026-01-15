@@ -38,6 +38,7 @@ interface UserContextType {
   isAuthInitialized: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
+  logout: () => Promise<void>; // 兼容字段，与 signOut 相同
   refreshUser: () => Promise<void>;
 }
 
@@ -283,6 +284,7 @@ export function UserProviderIntl({ children }: { children: ReactNode }) {
       isAuthInitialized,
       signInWithGoogle,
       signOut,
+      logout: signOut, // 兼容字段，与 signOut 相同
       refreshUser,
     }),
     [user, loading, isAuthInitialized, signInWithGoogle, signOut, refreshUser]

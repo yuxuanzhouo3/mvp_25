@@ -11,7 +11,6 @@ import { UpgradeModal } from "@/components/upgrade-modal"
 import { BannerAd } from "@/components/banner-ad"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Crown, Share2, TrendingUp, Brain, Loader2, Home } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -20,7 +19,9 @@ import { isChinaRegion } from "@/lib/config/region"
 import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
 import { useUserIntl } from "@/components/user-context-intl"
 import { UserAvatarMenu } from "@/components/navigation/user-avatar-menu"
+import { LanguageSwitcher } from "@/components/navigation/language-switcher"
 import { ModeToggle } from "@/components/ModeToggle"
+import { useT } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
@@ -45,6 +46,7 @@ interface UserProfile {
 export default function HomePage() {
   const router = useRouter()
   const { isAuthenticated, isLoading, user } = useAuth()
+  const t = useT()
   const [currentStep, setCurrentStep] = useState<"assessment" | "results" | "paths">("assessment")
   const [userSkills, setUserSkills] = useState<UserSkills>({})
   const [userProfile, setUserProfile] = useState<UserProfile>({
@@ -89,7 +91,7 @@ export default function HomePage() {
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
-          <p className="text-neutral-500 dark:text-neutral-400">加载中...</p>
+          <p className="text-neutral-500 dark:text-neutral-400">{t.common.loading}</p>
         </div>
       </div>
     )
@@ -154,13 +156,13 @@ export default function HomePage() {
               <div className="text-2xl font-bold text-neutral-950 dark:text-white">
                 SkillMap
               </div>
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">技能评估 · 角色定位 · 成长路径</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">{t.home.tagline}</div>
             </div>
             <div className="flex items-center space-x-3">
               {userProfile.weeklyRank > 0 && (
                 <Badge variant="outline" className="border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30">
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  周排名 #{userProfile.weeklyRank}
+                  {t.home.weeklyRank} #{userProfile.weeklyRank}
                 </Badge>
               )}
               {userProfile.isPremium ? (
@@ -174,7 +176,7 @@ export default function HomePage() {
                   className="bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
                   <Crown className="w-4 h-4 mr-2" />
-                  升级Pro
+                  {t.home.upgradePro}
                 </Button>
               )}
               <Button
@@ -184,7 +186,7 @@ export default function HomePage() {
                 disabled={!userProfile.role}
               >
                 <Brain className="w-4 h-4 mr-2" />
-                AI教练 {!userProfile.isPremium && `(${3 - aiCoachSessions}/3)`}
+                {t.home.aiCoach} {!userProfile.isPremium && `(${3 - aiCoachSessions}/3)`}
               </Button>
               <Button
                 variant="outline"
@@ -193,9 +195,8 @@ export default function HomePage() {
                 className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
                 <Share2 className="w-4 h-4 mr-2" />
-                分享成果
+                {t.home.shareResults}
               </Button>
-              <ModeToggle />
               <UserAvatarMenu />
             </div>
           </div>
@@ -206,13 +207,10 @@ export default function HomePage() {
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">发现你的技能优势</h1>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">完成度</div>
-              <div className="w-32">
-                <Progress value={userProfile.assessmentProgress} className="h-2" />
-              </div>
-              <div className="text-sm text-neutral-950 dark:text-white font-medium">{userProfile.assessmentProgress}%</div>
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-950 dark:text-white">{t.home.discoverSkills}</h1>
+            <div className="flex items-center space-x-3">
+              <LanguageSwitcher />
+              <ModeToggle />
             </div>
           </div>
 
@@ -228,7 +226,7 @@ export default function HomePage() {
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-current" />
-              <span>技能评估</span>
+              <span>{t.home.skillAssessment}</span>
             </div>
             <div className="w-8 h-px bg-neutral-300 dark:bg-neutral-700" />
             <div
@@ -241,7 +239,7 @@ export default function HomePage() {
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-current" />
-              <span>角色定位</span>
+              <span>{t.home.rolePositioning}</span>
             </div>
             <div className="w-8 h-px bg-neutral-300 dark:bg-neutral-700" />
             <div
@@ -254,7 +252,7 @@ export default function HomePage() {
               }`}
             >
               <div className="w-2 h-2 rounded-full bg-current" />
-              <span>学习路径</span>
+              <span>{t.home.learningPath}</span>
             </div>
           </div>
         </div>
@@ -288,17 +286,17 @@ export default function HomePage() {
                     className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   >
                     <Home className="w-4 h-4 mr-2" />
-                    返回主页
+                    {t.home.backToHome}
                   </Button>
                 </div>
 
                 <Tabs defaultValue="classification" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
                   <TabsTrigger value="classification" className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-950 data-[state=active]:text-indigo-600">
-                    角色分析
+                    {t.home.roleAnalysis}
                   </TabsTrigger>
                   <TabsTrigger value="competitiveness" className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-950 data-[state=active]:text-indigo-600">
-                    竞争力报告
+                    {t.home.competitivenessReport}
                   </TabsTrigger>
                 </TabsList>
 

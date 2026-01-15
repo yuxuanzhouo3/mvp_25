@@ -13,11 +13,13 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 function AuthCallbackContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const t = useT();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -64,12 +66,12 @@ function AuthCallbackContent() {
           }, 500);
         } else {
           console.log("❌ [OAuth Callback] 没有找到有效的 session");
-          setError("认证失败，请重试");
+          setError(t.callback.failed);
           setLoading(false);
         }
       } catch (err) {
         console.error("❌ [OAuth Callback] 处理异常:", err);
-        setError(err instanceof Error ? err.message : "处理认证回调时出错");
+        setError(err instanceof Error ? err.message : t.callback.failed);
         setLoading(false);
       }
     };
@@ -85,7 +87,7 @@ function AuthCallbackContent() {
             <div className="flex flex-col items-center space-y-4">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
               <p className="text-center text-gray-600 dark:text-gray-300">
-                正在处理认证...
+                {t.callback.processing}
               </p>
             </div>
           </CardContent>
@@ -98,9 +100,9 @@ function AuthCallbackContent() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">认证结果</CardTitle>
+          <CardTitle className="text-2xl text-center">{error ? t.callback.failed : t.callback.success}</CardTitle>
           <CardDescription className="text-center">
-            {error ? "认证过程中出现问题" : "认证完成"}
+            {error ? t.callback.tryAgain : t.callback.redirecting}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -110,7 +112,7 @@ function AuthCallbackContent() {
             </Alert>
           ) : (
             <Alert>
-              <AlertDescription>认证成功！正在跳转...</AlertDescription>
+              <AlertDescription>{t.callback.redirecting}</AlertDescription>
             </Alert>
           )}
 
@@ -119,7 +121,7 @@ function AuthCallbackContent() {
               onClick={() => router.push("/login")}
               className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
             >
-              返回登录页面
+              {t.callback.backToLogin}
             </button>
           </div>
         </CardContent>

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { isChinaRegion } from "@/lib/config/region"
 import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
 import { useUserIntl } from "@/components/user-context-intl"
+import { useT } from "@/lib/i18n"
 import {
   User,
   CreditCard,
@@ -17,19 +18,21 @@ import {
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
-const menuItems = [
-  { title: "个人信息", icon: User, href: "/profile" },
-  { title: "订阅管理", icon: CreditCard, href: "/profile/subscription" },
-  { title: "支付记录", icon: Receipt, href: "/profile/payments" },
-  { title: "账户设置", icon: Settings, href: "/profile/settings" },
-]
-
 export function UserAvatarMenu() {
   const { user, logout } = useAuth()
   const router = useRouter()
+  const t = useT()
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // 菜单项配置（使用翻译）
+  const menuItems = [
+    { title: t.userMenu.profile, icon: User, href: "/profile" },
+    { title: t.userMenu.subscription, icon: CreditCard, href: "/profile/subscription" },
+    { title: t.userMenu.payments, icon: Receipt, href: "/profile/payments" },
+    { title: t.userMenu.settings, icon: Settings, href: "/profile/settings" },
+  ]
 
   // 获取用户名首字母作为头像回退
   const getAvatarFallback = () => {
@@ -170,7 +173,7 @@ export function UserAvatarMenu() {
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-300 transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
-              退出登录
+              {t.userMenu.logout}
             </button>
           </div>
         </div>

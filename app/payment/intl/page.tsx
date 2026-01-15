@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   AlertCircle
 } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
@@ -55,6 +56,7 @@ const FEATURES = [
 export default function IntlPaymentPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
+  const t = useT();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("yearly");
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("stripe");
   const [isCreating, setIsCreating] = useState(false);
@@ -131,20 +133,20 @@ export default function IntlPaymentPage() {
           className="mb-6 text-slate-400 hover:text-white hover:bg-slate-800"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          {t.common.back}
         </Button>
 
         {/* Header */}
         <div className="text-center mb-10">
           <Badge className="mb-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
             <Sparkles className="w-3 h-3 mr-1" />
-            Premium
+            {t.payment.premium}
           </Badge>
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            Upgrade to Premium
+            {t.payment.upgradeMember}
           </h1>
           <p className="text-slate-400 text-lg">
-            Unlock all features and supercharge your teaching
+            {t.payment.unlockFeatures}
           </p>
         </div>
 
@@ -156,7 +158,7 @@ export default function IntlPaymentPage() {
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-yellow-500" />
-                  Choose Your Plan
+                  {t.payment.selectPlan}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -240,7 +242,7 @@ export default function IntlPaymentPage() {
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                   <CreditCard className="w-5 h-5" />
-                  Payment Method
+                  {t.payment.paymentMethod}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -329,11 +331,11 @@ export default function IntlPaymentPage() {
               {isCreating ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Processing...
+                  {t.payment.processing}
                 </>
               ) : (
                 <>
-                  Pay ${PRICING[billingCycle].price}
+                  {t.payment.payNow} ${PRICING[billingCycle].price}
                 </>
               )}
             </Button>
@@ -341,16 +343,16 @@ export default function IntlPaymentPage() {
             {/* Security Note */}
             <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
               <Shield className="w-4 h-4" />
-              <span>Secure payment powered by {paymentProvider === "stripe" ? "Stripe" : "PayPal"}</span>
+              <span>{t.payment.securePayment} {paymentProvider === "stripe" ? "Stripe" : "PayPal"}</span>
             </div>
           </div>
 
           {/* Right: Features */}
           <Card className="bg-slate-800/50 border-slate-700 h-fit lg:sticky lg:top-8">
             <CardHeader>
-              <CardTitle className="text-white">Premium Benefits</CardTitle>
+              <CardTitle className="text-white">{t.payment.memberBenefits}</CardTitle>
               <CardDescription className="text-slate-400">
-                Everything you need to supercharge your teaching
+                {t.payment.benefitsDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -369,9 +371,9 @@ export default function IntlPaymentPage() {
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-blue-400 mt-0.5" />
                   <div>
-                    <p className="font-medium text-white">Money Back Guarantee</p>
+                    <p className="font-medium text-white">{t.payment.satisfactionGuarantee}</p>
                     <p className="text-sm text-slate-400">
-                      Not satisfied? Get a full refund within 7 days, no questions asked.
+                      {t.payment.refundPolicy}
                     </p>
                   </div>
                 </div>

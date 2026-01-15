@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { EXAM_PRESETS } from "@/lib/exam-mock-data"
 import { parseFile, validateFile, MAX_FILE_SIZE } from "@/lib/file-parser"
+import { useT } from "@/lib/i18n"
 
 type Step = 'goal' | 'source' | 'config' | 'processing' | 'ready'
 type SourceType = 'upload' | 'search' | null
@@ -54,6 +55,7 @@ interface SyllabusData {
 function ExamSetupContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useT()
 
   // 从 URL 参数获取初始 step
   const getInitialStep = (): Step => {
@@ -543,10 +545,10 @@ function ExamSetupContent() {
               className="flex items-center text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition"
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
-              返回
+              {t.common.back}
             </button>
             <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-              智能备考系统
+              {t.examSetup.smartSystem}
             </div>
             <div className="w-20" />
           </div>
@@ -595,18 +597,18 @@ function ExamSetupContent() {
                 <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Target className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">设置你的考试目标</h2>
-                <p className="text-neutral-500 dark:text-neutral-400">告诉 AI 你要准备什么考试，我们会为你量身定制学习计划</p>
+                <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">{t.examSetup.setGoal}</h2>
+                <p className="text-neutral-500 dark:text-neutral-400">{t.examSetup.setGoalDesc}</p>
               </div>
 
               <div className="space-y-6">
                 {/* 考试名称 */}
                 <div>
-                  <Label className="text-neutral-600 dark:text-neutral-300 mb-2 block">考试名称</Label>
+                  <Label className="text-neutral-600 dark:text-neutral-300 mb-2 block">{t.examSetup.examName}</Label>
                   <Input
                     value={examName}
                     onChange={(e) => setExamName(e.target.value)}
-                    placeholder="例如：考研数学、大学英语四级..."
+                    placeholder={t.examSetup.examNamePlaceholder}
                     className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
                   />
 
@@ -635,7 +637,7 @@ function ExamSetupContent() {
                   disabled={!examName}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
                 >
-                  下一步
+                  {t.common.next}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
 
@@ -649,7 +651,7 @@ function ExamSetupContent() {
                   className="w-full border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  跳过，直接上传题库
+                  {t.examSetup.skipUpload}
                 </Button>
               </div>
             </Card>
@@ -662,8 +664,8 @@ function ExamSetupContent() {
                 <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
                   <BookOpen className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">你有备考资料吗？</h2>
-                <p className="text-neutral-500 dark:text-neutral-400">选择资料来源，AI 将基于此生成精准题库</p>
+                <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">{t.examSetup.haveMaterials}</h2>
+                <p className="text-neutral-500 dark:text-neutral-400">{t.examSetup.selectSource}</p>
               </div>
 
               <div className={`grid gap-4 mb-6 ${sourceFromMainPage ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
@@ -683,8 +685,8 @@ function ExamSetupContent() {
                       }`}>
                         <Upload className={`w-6 h-6 ${sourceType === 'upload' ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`} />
                       </div>
-                      <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-1">上传我的资料</h3>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400">上传 PDF/Word 文档，AI 解析生成题库</p>
+                      <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-1">{t.examSetup.uploadMaterials}</h3>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400">{t.examSetup.uploadDesc}</p>
                     </div>
                     {sourceType === 'upload' && (
                       <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -708,8 +710,8 @@ function ExamSetupContent() {
                       }`}>
                         <Globe className={`w-6 h-6 ${sourceType === 'search' ? 'text-white' : 'text-neutral-600 dark:text-neutral-300'}`} />
                       </div>
-                      <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-1">AI 联网搜索</h3>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400">AI 自动搜索考试大纲，生成题库</p>
+                      <h3 className="text-lg font-semibold text-neutral-950 dark:text-white mb-1">{t.examSetup.aiSearch}</h3>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400">{t.examSetup.aiSearchDesc}</p>
                     </div>
                     {sourceType === 'search' && (
                       <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -744,8 +746,8 @@ function ExamSetupContent() {
                     {isDragOver ? (
                       <>
                         <Upload className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto mb-3" />
-                        <p className="text-emerald-700 dark:text-emerald-300 font-medium">松开鼠标上传文件</p>
-                        <p className="text-sm text-emerald-600 dark:text-emerald-400/70">支持 PDF、Word 格式</p>
+                        <p className="text-emerald-700 dark:text-emerald-300 font-medium">{t.examSetup.dropToUpload}</p>
+                        <p className="text-sm text-emerald-600 dark:text-emerald-400/70">{t.examSetup.supportFormats}</p>
                       </>
                     ) : uploadedFile ? (
                       <div className="flex items-center justify-center gap-3">
@@ -760,9 +762,9 @@ function ExamSetupContent() {
                     ) : (
                       <>
                         <Upload className="w-12 h-12 text-indigo-600 dark:text-indigo-400 mx-auto mb-3 animate-bounce" />
-                        <p className="text-indigo-700 dark:text-indigo-300 font-medium">点击或拖拽上传文件</p>
-                        <p className="text-sm text-indigo-600 dark:text-indigo-400/70">支持 PDF、Word 格式（最大 10MB）</p>
-                        <p className="text-xs text-neutral-500 mt-2">可从文件夹、QQ、微信直接拖入</p>
+                        <p className="text-indigo-700 dark:text-indigo-300 font-medium">{t.examSetup.clickOrDrag}</p>
+                        <p className="text-sm text-indigo-600 dark:text-indigo-400/70">{t.examSetup.supportFormats}</p>
+                        <p className="text-xs text-neutral-500 mt-2">{t.examSetup.dragFromApps}</p>
                       </>
                     )}
                   </label>
@@ -775,12 +777,12 @@ function ExamSetupContent() {
                   <div className="flex items-start gap-3">
                     <Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5" />
                     <div>
-                      <p className="text-indigo-700 dark:text-indigo-300 font-medium">AI 将为你搜索以下内容：</p>
+                      <p className="text-indigo-700 dark:text-indigo-300 font-medium">{t.examSetup.aiWillSearch}</p>
                       <ul className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 space-y-1">
-                        <li>• {examName} 官方考试大纲</li>
-                        <li>• 历年真题及解析</li>
-                        <li>• 高频考点汇总</li>
-                        <li>• 备考技巧与建议</li>
+                        <li>• {examName} {t.examSetup.officialSyllabus}</li>
+                        <li>• {t.examSetup.pastPapers}</li>
+                        <li>• {t.examSetup.keyPoints}</li>
+                        <li>• {t.examSetup.prepTips}</li>
                       </ul>
                     </div>
                   </div>
@@ -800,7 +802,7 @@ function ExamSetupContent() {
               {/* 出题数量选择器 */}
               {sourceType && (
                 <div className="mb-6 animate-in fade-in duration-300">
-                  <Label className="text-neutral-600 dark:text-neutral-300 mb-3 block">出题数量</Label>
+                  <Label className="text-neutral-600 dark:text-neutral-300 mb-3 block">{t.examSetup.questionCountLabel}</Label>
                   <div className="grid grid-cols-4 gap-2">
                     {[5, 10, 15, 20].map(num => (
                       <button
@@ -812,11 +814,11 @@ function ExamSetupContent() {
                             : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                         }`}
                       >
-                        {num} 题
+                        {num} {t.exam.questions}
                       </button>
                     ))}
                   </div>
-                  <p className="text-xs text-neutral-500 mt-2">最多支持 20 题</p>
+                  <p className="text-xs text-neutral-500 mt-2">{t.examSetup.maxQuestions}</p>
                 </div>
               )}
 
@@ -827,7 +829,7 @@ function ExamSetupContent() {
                   className="flex-1 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  上一步
+                  {t.examSetup.prevStep}
                 </Button>
                 <div className="flex-1">
                   <Button
@@ -835,12 +837,12 @@ function ExamSetupContent() {
                     disabled={!sourceType || (sourceType === 'upload' && !uploadedFile)}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    开始生成题库
+                    {t.examSetup.startGenerate}
                     <Sparkles className="w-4 h-4 ml-2" />
                   </Button>
                   {sourceType === 'upload' && !uploadedFile && (
                     <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 text-center">
-                      ⚠️ 请先上传文件
+                      ⚠️ {t.examSetup.pleaseUpload}
                     </p>
                   )}
                 </div>
@@ -860,12 +862,12 @@ function ExamSetupContent() {
                   )}
                 </div>
                 <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">
-                  {sourceType === 'upload' ? '正在解析你的文档...' : '🌐 正在联网搜索考试资料...'}
+                  {sourceType === 'upload' ? t.examSetup.parsingDoc : `🌐 ${t.examSetup.searchingOnline}`}
                 </h2>
                 <p className="text-neutral-500 dark:text-neutral-400 mb-8">
                   {sourceType === 'search'
-                    ? 'AI 正在联网获取最新考试大纲和题型信息'
-                    : 'AI 正在努力为你准备精准题库，请稍候'}
+                    ? t.examSetup.aiGettingSyllabus
+                    : t.examSetup.aiPreparing}
                 </p>
 
                 <div className="max-w-md mx-auto">
@@ -894,10 +896,10 @@ function ExamSetupContent() {
                   ) : (
                     // 默认步骤（兼容旧逻辑）
                     [
-                      { text: '分析考试大纲', done: processingProgress > 20 },
-                      { text: '提取核心知识点', done: processingProgress > 40 },
-                      { text: '生成分级题库', done: processingProgress > 60 },
-                      { text: '优化题目质量', done: processingProgress > 80 },
+                      { text: t.examSetup.analyzingSyllabus, done: processingProgress > 20 },
+                      { text: t.examSetup.extractingPoints, done: processingProgress > 40 },
+                      { text: t.examSetup.generatingBank, done: processingProgress > 60 },
+                      { text: t.examSetup.optimizingQuality, done: processingProgress > 80 },
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3">
                         {item.done ? (
@@ -920,10 +922,10 @@ function ExamSetupContent() {
                   <div className="mt-6 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
                     <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
                       <AlertCircle className="w-5 h-5" />
-                      <span className="font-medium">搜索遇到问题</span>
+                      <span className="font-medium">{t.examSetup.searchIssue}</span>
                     </div>
                     <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">{searchError}</p>
-                    <p className="text-sm text-neutral-500 mt-1">将使用默认题库继续</p>
+                    <p className="text-sm text-neutral-500 mt-1">{t.examSetup.useDefaultBank}</p>
                   </div>
                 )}
               </div>
@@ -937,32 +939,32 @@ function ExamSetupContent() {
                 <div className="w-20 h-20 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">题库生成完成！</h2>
-                <p className="text-neutral-500 dark:text-neutral-400 mb-6">已为你准备好 {examName} 的专属题库</p>
+                <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">{t.examSetup.bankComplete}</h2>
+                <p className="text-neutral-500 dark:text-neutral-400 mb-6">{t.examSetup.preparedBank} {examName}</p>
 
                 {/* 搜索结果摘要（如果有联网搜索数据） */}
                 {syllabusData && syllabusData.examInfo && (
                   <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 mb-6 text-left">
                     <div className="flex items-center gap-2 mb-3">
                       <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                      <span className="text-indigo-700 dark:text-indigo-400 font-medium">联网搜索结果</span>
+                      <span className="text-indigo-700 dark:text-indigo-400 font-medium">{t.examSetup.searchResults}</span>
                     </div>
                     <div className="space-y-2 text-sm">
                       {syllabusData.examInfo.name && (
                         <p className="text-neutral-700 dark:text-neutral-300">
-                          <span className="text-neutral-500">考试名称：</span>
+                          <span className="text-neutral-500">{t.examSetup.examNameLabel}</span>
                           {syllabusData.examInfo.name}
                         </p>
                       )}
                       {syllabusData.examInfo.examTime && (
                         <p className="text-neutral-700 dark:text-neutral-300">
-                          <span className="text-neutral-500">考试时间：</span>
+                          <span className="text-neutral-500">{t.examSetup.examTimeLabel}</span>
                           {syllabusData.examInfo.examTime}
                         </p>
                       )}
                       {syllabusData.examInfo.totalScore && (
                         <p className="text-neutral-700 dark:text-neutral-300">
-                          <span className="text-neutral-500">总分：</span>
+                          <span className="text-neutral-500">{t.examSetup.totalScoreLabel}</span>
                           {syllabusData.examInfo.totalScore}
                         </p>
                       )}
@@ -973,7 +975,7 @@ function ExamSetupContent() {
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
                         >
-                          官方网站 <ExternalLink className="w-3 h-3" />
+                          {t.examSetup.officialWebsite} <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
                     </div>
@@ -983,7 +985,7 @@ function ExamSetupContent() {
                 {/* 知识点摘要（如果有联网搜索数据） */}
                 {syllabusData && syllabusData.syllabus && syllabusData.syllabus.length > 0 && (
                   <div className="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-4 mb-6 text-left">
-                    <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">📚 已获取的考纲章节：</p>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-3">📚 {t.examSetup.syllabusChapters}</p>
                     <div className="flex flex-wrap gap-2">
                       {syllabusData.syllabus.slice(0, 5).map((item, i) => (
                         <span key={i} className="px-2 py-1 bg-neutral-200 dark:bg-neutral-800 rounded text-xs text-neutral-700 dark:text-neutral-300">
@@ -992,7 +994,7 @@ function ExamSetupContent() {
                       ))}
                       {syllabusData.syllabus.length > 5 && (
                         <span className="px-2 py-1 bg-neutral-200 dark:bg-neutral-800 rounded text-xs text-neutral-500 dark:text-neutral-400">
-                          +{syllabusData.syllabus.length - 5} 更多
+                          +{syllabusData.syllabus.length - 5} {t.examSetup.moreChapters}
                         </span>
                       )}
                     </div>
@@ -1005,13 +1007,13 @@ function ExamSetupContent() {
                     <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                       {syllabusData?.syllabus ? syllabusData.syllabus.length * 4 : 20}+
                     </div>
-                    <div className="text-sm text-neutral-500 dark:text-neutral-400">精选题目</div>
+                    <div className="text-sm text-neutral-500 dark:text-neutral-400">{t.examSetup.selectedQuestions}</div>
                   </div>
                   <div className="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-4">
                     <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                       {syllabusData?.syllabus?.length || 5}
                     </div>
-                    <div className="text-sm text-neutral-500 dark:text-neutral-400">知识模块</div>
+                    <div className="text-sm text-neutral-500 dark:text-neutral-400">{t.examSetup.knowledgeModules}</div>
                   </div>
                 </div>
 
@@ -1019,11 +1021,11 @@ function ExamSetupContent() {
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <span className="text-2xl">🥉</span>
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">青铜</span>
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">{t.examSetup.bronze}</span>
                   </div>
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    你将从青铜等级开始，答题获得积分升级！<br />
-                    连续答对有连击加成，但小心连续答错会降级哦~
+                    {t.examSetup.startFromBronze}<br />
+                    {t.examSetup.comboBonus}
                   </p>
                 </div>
 
@@ -1031,7 +1033,7 @@ function ExamSetupContent() {
                   onClick={handleStartPractice}
                   className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg py-6"
                 >
-                  开始刷题闯关
+                  {t.examSetup.startPractice}
                   <Sparkles className="w-5 h-5 ml-2" />
                 </Button>
               </div>
@@ -1050,7 +1052,7 @@ export default function ExamSetupPage() {
       <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-indigo-600 dark:text-indigo-400 animate-spin mx-auto mb-4" />
-          <p className="text-neutral-500 dark:text-neutral-400">加载中...</p>
+          <p className="text-neutral-500 dark:text-neutral-400">Loading...</p>
         </div>
       </div>
     }>

@@ -39,12 +39,14 @@ import {
   AlertCircle,
   AlertTriangle,
 } from "lucide-react"
+import { useT, setLanguage } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 
 export function AccountSettings() {
   const { logout } = useAuth()
+  const t = useT()
 
   // 修改密码状态
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
@@ -61,7 +63,12 @@ export function AccountSettings() {
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   // 设置状态
-  const [language, setLanguage] = useState("zh-CN")
+  const [language, setLanguageState] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("app_language") || (isChinaRegion() ? "zh-CN" : "en-US")
+    }
+    return isChinaRegion() ? "zh-CN" : "en-US"
+  })
   const [darkMode, setDarkMode] = useState(false)
 
   // 处理修改密码
@@ -78,7 +85,7 @@ export function AccountSettings() {
 
     // 验证确认密码
     if (newPassword !== confirmPassword) {
-      setPasswordError("两次输入的密码不一致")
+      setPasswordError(t.settings.passwordMismatch)
       return
     }
 
@@ -101,10 +108,10 @@ export function AccountSettings() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "修改密码失败")
+        throw new Error(data.error || t.settings.passwordChangeFailed)
       }
 
-      setPasswordSuccess("密码修改成功")
+      setPasswordSuccess(t.settings.passwordChangeSuccess)
       setCurrentPassword("")
       setNewPassword("")
       setConfirmPassword("")
@@ -114,7 +121,7 @@ export function AccountSettings() {
         setPasswordSuccess("")
       }, 2000)
     } catch (err: any) {
-      setPasswordError(err.message || "修改密码失败，请重试")
+      setPasswordError(err.message || t.settings.passwordChangeFailed)
     } finally {
       setPasswordLoading(false)
     }
@@ -139,14 +146,14 @@ export function AccountSettings() {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || "删除账户失败")
+        throw new Error(data.error || "Failed to delete account")
       }
 
       // 登出并跳转
       await logout()
       window.location.href = "/login"
     } catch (err: any) {
-      console.error("删除账户失败:", err)
+      console.error("Failed to delete account:", err)
     } finally {
       setDeleteLoading(false)
     }
@@ -162,11 +169,17 @@ export function AccountSettings() {
     }
   }
 
+  // 切换语言
+  const handleLanguageChange = (value: string) => {
+    setLanguageState(value)
+    setLanguage(value as "en-US" | "zh-CN")
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>账户设置</CardTitle>
-        <CardDescription>管理您的账户安全和偏好设置</CardDescription>
+        <CardTitle>{t.settings.title}</CardTitle>
+        <CardDescription>{t.settings.manageSettings}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -174,59 +187,59 @@ export function AccountSettings() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-muted-foreground" />
-            <h4 className="font-medium">修改密码</h4>
+            <h4 className="font-medium">{t.settings.changePassword}</h4>
           </div>
           <p className="text-sm text-muted-foreground">
-            定期更换密码可以提高账户安全性
+            {t.settings.changePasswordDesc}
           </p>
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full mt-2">
-                更改密码
+                {t.settings.changePasswordBtn}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>修改密码</DialogTitle>
+                <DialogTitle>{t.settings.changePasswordTitle}</DialogTitle>
                 <DialogDescription>
-                  请输入当前密码和新密码
+                  {t.settings.changePasswordSubtitle}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="current-password">当前密码</Label>
+                  <Label htmlFor="current-password">{t.settings.currentPassword}</Label>
                   <Input
                     id="current-password"
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="请输入当前密码"
+                    placeholder={t.settings.currentPasswordPlaceholder}
                     disabled={passwordLoading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">新密码</Label>
+                  <Label htmlFor="new-password">{t.settings.newPassword}</Label>
                   <Input
                     id="new-password"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="至少 6 个字符"
+                    placeholder={t.settings.newPasswordPlaceholder}
                     disabled={passwordLoading}
                   />
                   <PasswordStrengthIndicator password={newPassword} />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-new-password">确认新密码</Label>
+                  <Label htmlFor="confirm-new-password">{t.settings.confirmNewPassword}</Label>
                   <Input
                     id="confirm-new-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="请再次输入新密码"
+                    placeholder={t.settings.confirmNewPasswordPlaceholder}
                     disabled={passwordLoading}
                   />
                 </div>
@@ -252,16 +265,16 @@ export function AccountSettings() {
                   onClick={() => setShowPasswordDialog(false)}
                   disabled={passwordLoading}
                 >
-                  取消
+                  {t.common.cancel}
                 </Button>
                 <Button onClick={handleChangePassword} disabled={passwordLoading}>
                   {passwordLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      保存中...
+                      {t.settings.savingPassword}
                     </>
                   ) : (
-                    "保存更改"
+                    t.profile.saveChanges
                   )}
                 </Button>
               </DialogFooter>
@@ -275,15 +288,15 @@ export function AccountSettings() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
-            <Label>语言偏好</Label>
+            <Label>{t.settings.languagePreference}</Label>
           </div>
-          <Select value={language} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={handleLanguageChange}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="zh-CN">简体中文</SelectItem>
-              <SelectItem value="en-US">English</SelectItem>
+              <SelectItem value="zh-CN">{t.settings.chinese}</SelectItem>
+              <SelectItem value="en-US">{t.settings.english}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -295,9 +308,9 @@ export function AccountSettings() {
           <div className="flex items-center gap-2">
             <Moon className="h-4 w-4 text-muted-foreground" />
             <div>
-              <h4 className="font-medium">深色模式</h4>
+              <h4 className="font-medium">{t.settings.darkMode}</h4>
               <p className="text-sm text-muted-foreground">
-                切换应用外观主题
+                {t.settings.darkModeDesc}
               </p>
             </div>
           </div>
@@ -310,33 +323,31 @@ export function AccountSettings() {
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-destructive">
             <Trash2 className="h-4 w-4" />
-            <h4 className="font-medium">危险操作</h4>
+            <h4 className="font-medium">{t.settings.dangerZone}</h4>
           </div>
           <p className="text-sm text-muted-foreground">
-            删除账户后，所有数据将被永久删除且无法恢复
+            {t.settings.deleteAccountDesc}
           </p>
 
           <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
             <DialogTrigger asChild>
               <Button variant="destructive" className="w-full mt-2">
-                删除账户
+                {t.settings.deleteAccount}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-destructive">
                   <AlertTriangle className="h-5 w-5" />
-                  确认删除账户
+                  {t.settings.confirmDeleteTitle}
                 </DialogTitle>
                 <DialogDescription>
-                  此操作不可撤销。删除后，您的所有数据（包括个人信息、订阅记录、支付记录等）将被永久删除。
+                  {t.settings.confirmDeleteDesc}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="py-4">
-                <Label htmlFor="delete-confirm">
-                  请输入 <strong>DELETE</strong> 确认删除
-                </Label>
+                <Label htmlFor="delete-confirm" dangerouslySetInnerHTML={{ __html: t.settings.typeDeleteConfirm }} />
                 <Input
                   id="delete-confirm"
                   value={deleteConfirmText}
@@ -353,7 +364,7 @@ export function AccountSettings() {
                   onClick={() => setShowDeleteDialog(false)}
                   disabled={deleteLoading}
                 >
-                  取消
+                  {t.common.cancel}
                 </Button>
                 <Button
                   variant="destructive"
@@ -363,10 +374,10 @@ export function AccountSettings() {
                   {deleteLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      删除中...
+                      {t.settings.deleting}
                     </>
                   ) : (
-                    "确认删除"
+                    t.settings.confirmDelete
                   )}
                 </Button>
               </DialogFooter>

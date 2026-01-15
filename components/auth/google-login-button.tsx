@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import { useUserIntl } from '@/components/user-context-intl'
+import { useT } from '@/lib/i18n'
 
 // Google logo SVG (from reference project)
 function GoogleIcon({ className }: { className?: string }) {
@@ -32,6 +33,7 @@ function GoogleIcon({ className }: { className?: string }) {
 export function GoogleLoginButton() {
   const [isLoading, setIsLoading] = useState(false)
   const { signInWithGoogle } = useUserIntl()
+  const t = useT()
 
   const handleGoogleLogin = async () => {
     setIsLoading(true)
@@ -55,12 +57,12 @@ export function GoogleLoginButton() {
       {isLoading ? (
         <>
           <Loader2 className="w-5 h-5 animate-spin" />
-          Connecting to Google...
+          {t.common.loading}
         </>
       ) : (
         <>
           <GoogleIcon className="w-5 h-5" />
-          Continue with Google
+          {t.auth.continueWithGoogle}
         </>
       )}
     </Button>

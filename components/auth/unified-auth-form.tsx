@@ -15,6 +15,7 @@ import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
 import { useUserIntl } from "@/components/user-context-intl"
 import { Mail, Lock, User, Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useT } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
@@ -28,6 +29,7 @@ interface UnifiedAuthFormProps {
 export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: UnifiedAuthFormProps) {
   const router = useRouter()
   const { login } = useAuth()
+  const t = useT()
 
   // 登录表单状态
   const [loginEmail, setLoginEmail] = useState("")
@@ -57,10 +59,10 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
       const result = await login(loginEmail, loginPassword)
 
       if (!result.success) {
-        throw new Error(result.error || "登录失败")
+        throw new Error(result.error || t.auth.loginFailed)
       }
 
-      setSuccess("登录成功！正在跳转...")
+      setSuccess(t.auth.loginSuccess)
 
       setTimeout(() => {
         if (onSuccess) {
@@ -70,7 +72,7 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
         }
       }, 1000)
     } catch (err: any) {
-      setError(err.message || "登录失败，请重试")
+      setError(err.message || t.auth.loginFailed)
     } finally {
       setIsLoading(false)
     }
@@ -91,13 +93,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
 
     // 验证密码确认
     if (registerPassword !== confirmPassword) {
-      setError("两次输入的密码不一致")
+      setError(t.auth.passwordMismatch)
       return
     }
 
     // 验证同意条款
     if (!agreeTerms) {
-      setError("请阅读并同意服务条款")
+      setError(t.auth.agreeTerms)
       return
     }
 
@@ -118,10 +120,10 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "注册失败")
+        throw new Error(data.error || t.auth.registerFailed)
       }
 
-      setSuccess("注册成功！请查收验证邮件或直接登录")
+      setSuccess(t.auth.registerSuccess)
 
       // 自动切换到登录 tab
       setTimeout(() => {
@@ -129,7 +131,7 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
         setLoginPassword("")
       }, 2000)
     } catch (err: any) {
-      setError(err.message || "注册失败，请重试")
+      setError(err.message || t.auth.registerFailed)
     } finally {
       setIsLoading(false)
     }
@@ -140,10 +142,10 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
       <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="login" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            登录
+            {t.common.login}
           </TabsTrigger>
           <TabsTrigger value="register" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-            注册
+            {t.common.register}
           </TabsTrigger>
         </TabsList>
 
@@ -152,13 +154,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
           <form onSubmit={handleLogin} className="space-y-4">
             {/* 邮箱 */}
             <div className="space-y-2">
-              <Label htmlFor="login-email">邮箱地址</Label>
+              <Label htmlFor="login-email">{t.auth.email}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="login-email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder={t.auth.emailPlaceholder}
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="pl-10"
@@ -170,13 +172,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
 
             {/* 密码 */}
             <div className="space-y-2">
-              <Label htmlFor="login-password">密码</Label>
+              <Label htmlFor="login-password">{t.auth.password}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="login-password"
                   type="password"
-                  placeholder="请输入密码"
+                  placeholder={t.auth.passwordPlaceholder}
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   className="pl-10"
@@ -196,11 +198,11 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
                   disabled={isLoading}
                 />
                 <Label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer">
-                  记住我
+                  {t.auth.rememberMe}
                 </Label>
               </div>
               <Button variant="link" className="px-0 text-sm" type="button" disabled={isLoading}>
-                忘记密码?
+                {t.auth.forgotPassword}
               </Button>
             </div>
 
@@ -224,10 +226,10 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  登录中...
+                  {t.auth.loggingIn}
                 </>
               ) : (
-                "登录"
+                t.auth.loginButton
               )}
             </Button>
           </form>
@@ -238,13 +240,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
           <form onSubmit={handleRegister} className="space-y-4">
             {/* 用户名 */}
             <div className="space-y-2">
-              <Label htmlFor="register-name">用户名</Label>
+              <Label htmlFor="register-name">{t.auth.username}</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="register-name"
                   type="text"
-                  placeholder="请输入用户名"
+                  placeholder={t.auth.usernamePlaceholder}
                   value={registerName}
                   onChange={(e) => setRegisterName(e.target.value)}
                   className="pl-10"
@@ -256,13 +258,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
 
             {/* 邮箱 */}
             <div className="space-y-2">
-              <Label htmlFor="register-email">邮箱地址</Label>
+              <Label htmlFor="register-email">{t.auth.email}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="register-email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder={t.auth.emailPlaceholder}
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   className="pl-10"
@@ -274,13 +276,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
 
             {/* 密码 */}
             <div className="space-y-2">
-              <Label htmlFor="register-password">密码</Label>
+              <Label htmlFor="register-password">{t.auth.password}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="register-password"
                   type="password"
-                  placeholder="至少 6 个字符"
+                  placeholder={t.auth.passwordMinLength}
                   value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
                   className="pl-10"
@@ -293,13 +295,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
 
             {/* 确认密码 */}
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">确认密码</Label>
+              <Label htmlFor="confirm-password">{t.auth.confirmPassword}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="confirm-password"
                   type="password"
-                  placeholder="请再次输入密码"
+                  placeholder={t.auth.confirmPasswordPlaceholder}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-10"
@@ -308,7 +310,7 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
                 />
               </div>
               {confirmPassword && registerPassword !== confirmPassword && (
-                <p className="text-xs text-red-500">密码不一致</p>
+                <p className="text-xs text-red-500">{t.auth.passwordMismatch}</p>
               )}
             </div>
 
@@ -322,13 +324,13 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
                 className="mt-0.5"
               />
               <Label htmlFor="agree-terms" className="text-sm text-muted-foreground cursor-pointer leading-tight">
-                我已阅读并同意{" "}
+                {t.auth.termsText}{" "}
                 <Button variant="link" className="px-0 h-auto text-sm" type="button">
-                  服务条款
+                  {t.auth.termsOfService}
                 </Button>{" "}
-                和{" "}
+                {t.common.and}{" "}
                 <Button variant="link" className="px-0 h-auto text-sm" type="button">
-                  隐私政策
+                  {t.auth.privacyPolicy}
                 </Button>
               </Label>
             </div>
@@ -353,10 +355,10 @@ export function UnifiedAuthForm({ defaultTab = "login", onSuccess, className }: 
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  注册中...
+                  {t.auth.registering}
                 </>
               ) : (
-                "注册"
+                t.auth.registerButton
               )}
             </Button>
           </form>

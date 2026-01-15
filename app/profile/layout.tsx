@@ -7,6 +7,7 @@ import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
 import { useUserIntl } from "@/components/user-context-intl"
 import { SidebarNavigation } from "@/components/profile/sidebar-navigation"
 import { Loader2 } from "lucide-react"
+import { useT } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
@@ -18,6 +19,7 @@ export default function ProfileLayout({
 }) {
   const router = useRouter()
   const { isAuthenticated, isLoading } = useAuth()
+  const t = useT()
 
   // 未登录重定向到登录页
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function ProfileLayout({
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">加载中...</p>
+          <p className="text-muted-foreground">{t.common.loading}</p>
         </div>
       </div>
     )
