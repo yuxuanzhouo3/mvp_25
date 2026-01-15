@@ -5,6 +5,7 @@ import { AuthProvider } from '@/components/auth/auth-provider'
 import { UserProviderIntl } from '@/components/user-context-intl'
 import { ThemeProvider } from '@/components/theme-provider'
 import { isChinaRegion } from '@/lib/config/region'
+import { I18nProvider } from '@/lib/i18n'
 
 const isChina = isChinaRegion()
 
@@ -23,17 +24,19 @@ export default function RootLayout({
     <html lang={isChina ? "zh-CN" : "en"} suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          {isChina ? (
-            <AuthProvider>
-              {children}
-              <Toaster />
-            </AuthProvider>
-          ) : (
-            <UserProviderIntl>
-              {children}
-              <Toaster />
-            </UserProviderIntl>
-          )}
+          <I18nProvider>
+            {isChina ? (
+              <AuthProvider>
+                {children}
+                <Toaster />
+              </AuthProvider>
+            ) : (
+              <UserProviderIntl>
+                {children}
+                <Toaster />
+              </UserProviderIntl>
+            )}
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

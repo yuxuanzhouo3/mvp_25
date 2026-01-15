@@ -39,7 +39,7 @@ import {
   AlertCircle,
   AlertTriangle,
 } from "lucide-react"
-import { useT, setLanguage } from "@/lib/i18n"
+import { useT, useI18n } from "@/lib/i18n"
 
 // 根据区域选择正确的 hook
 const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
@@ -47,6 +47,7 @@ const useAuth = isChinaRegion() ? useAuthCN : useUserIntl
 export function AccountSettings() {
   const { logout } = useAuth()
   const t = useT()
+  const { lang, setLanguage } = useI18n()
 
   // 修改密码状态
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
@@ -63,12 +64,6 @@ export function AccountSettings() {
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   // 设置状态
-  const [language, setLanguageState] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("app_language") || (isChinaRegion() ? "zh-CN" : "en-US")
-    }
-    return isChinaRegion() ? "zh-CN" : "en-US"
-  })
   const [darkMode, setDarkMode] = useState(false)
 
   // 处理修改密码
@@ -171,7 +166,6 @@ export function AccountSettings() {
 
   // 切换语言
   const handleLanguageChange = (value: string) => {
-    setLanguageState(value)
     setLanguage(value as "en-US" | "zh-CN")
   }
 
@@ -290,7 +284,7 @@ export function AccountSettings() {
             <Globe className="h-4 w-4 text-muted-foreground" />
             <Label>{t.settings.languagePreference}</Label>
           </div>
-          <Select value={language} onValueChange={handleLanguageChange}>
+          <Select value={lang} onValueChange={handleLanguageChange}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>

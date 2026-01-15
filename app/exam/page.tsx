@@ -731,7 +731,7 @@ function ExamSetupContent() {
                     isDragOver
                       ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 scale-[1.02]'
                       : !uploadedFile
-                        ? 'border-indigo-400 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 animate-pulse'
+                        ? 'border-indigo-400 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-950/20'
                         : 'border-neutral-200 dark:border-neutral-700'
                   }`}
                 >
@@ -761,7 +761,7 @@ function ExamSetupContent() {
                       </div>
                     ) : (
                       <>
-                        <Upload className="w-12 h-12 text-indigo-600 dark:text-indigo-400 mx-auto mb-3 animate-bounce" />
+                        <Upload className="w-12 h-12 text-indigo-600 dark:text-indigo-400 mx-auto mb-3" />
                         <p className="text-indigo-700 dark:text-indigo-300 font-medium">{t.examSetup.clickOrDrag}</p>
                         <p className="text-sm text-indigo-600 dark:text-indigo-400/70">{t.examSetup.supportFormats}</p>
                         <p className="text-xs text-neutral-500 mt-2">{t.examSetup.dragFromApps}</p>
