@@ -84,8 +84,10 @@ function ExamSetupContent() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
   // 出题数量和文件错误状态
-  const [questionCount, setQuestionCount] = useState(10)
+  const [questionCount, setQuestionCount] = useState(5)
   const [fileError, setFileError] = useState<string | null>(null)
+  const [showCustomCount, setShowCustomCount] = useState(false)
+  const [customQuestionCount, setCustomQuestionCount] = useState('')
 
   // 联网搜索状态
   const [isSearching, setIsSearching] = useState(false)
@@ -804,12 +806,15 @@ function ExamSetupContent() {
                 <div className="mb-6 animate-in fade-in duration-300">
                   <Label className="text-neutral-600 dark:text-neutral-300 mb-3 block">{t.examSetup.questionCountLabel}</Label>
                   <div className="grid grid-cols-4 gap-2">
-                    {[5, 10, 15, 20].map(num => (
+                    {[5, 15, 20].map(num => (
                       <button
                         key={num}
-                        onClick={() => setQuestionCount(num)}
+                        onClick={() => {
+                          setQuestionCount(num)
+                          setShowCustomCount(false)
+                        }}
                         className={`py-3 rounded-lg font-medium transition-all ${
-                          questionCount === num
+                          questionCount === num && !showCustomCount
                             ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
                             : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
                         }`}
@@ -817,7 +822,38 @@ function ExamSetupContent() {
                         {num} {t.exam.questions}
                       </button>
                     ))}
+                    <button
+                      onClick={() => setShowCustomCount(true)}
+                      className={`py-3 rounded-lg font-medium transition-all ${
+                        showCustomCount
+                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                      }`}
+                    >
+                      {t.examSetup.custom}
+                    </button>
                   </div>
+                  {showCustomCount && (
+                    <div className="mt-3">
+                      <input
+                        type="number"
+                        min="1"
+                        max="40"
+                        value={customQuestionCount}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value)
+                          setCustomQuestionCount(e.target.value)
+                          if (val >= 1 && val <= 40) {
+                            setQuestionCount(val)
+                          }
+                        }}
+                        placeholder={t.examSetup.customPlaceholder}
+                        className="w-full px-4 py-2 rounded-lg border border-indigo-300 dark:border-indigo-700
+                                   bg-white dark:bg-neutral-900 text-neutral-950 dark:text-white
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                      />
+                    </div>
+                  )}
                   <p className="text-xs text-neutral-500 mt-2">{t.examSetup.maxQuestions}</p>
                 </div>
               )}
@@ -825,7 +861,7 @@ function ExamSetupContent() {
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => setStep('goal')}
+                  onClick={() => router.push('/')}
                   className="flex-1 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />

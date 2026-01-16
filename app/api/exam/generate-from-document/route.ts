@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (count < 1 || count > 20) {
+    if (count < 1 || count > 40) {
       return NextResponse.json(
-        { error: '出题数量必须在 1-20 之间' },
+        { error: '出题数量必须在 1-40 之间' },
         { status: 400 }
       );
     }
@@ -292,7 +292,7 @@ export async function GET() {
     parameters: {
       documentContent: '文档文本内容（必填）',
       examName: '考试名称（可选）',
-      count: '题目数量，1-20（默认10）'
+      count: '题目数量，1-40（默认10）'
     },
     questionTypes: ['single', 'multiple', 'fill']
   });
