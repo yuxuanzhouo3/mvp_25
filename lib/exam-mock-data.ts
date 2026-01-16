@@ -223,21 +223,8 @@ export function calculatePoints(
       return points;
     }
 
-    // 完全错误：扣分
-    let points = POINT_RULES.wrongBase;
-
-    // 连续错误额外扣分
-    const penaltyKeys = Object.keys(POINT_RULES.consecutiveWrongPenalty)
-      .map(Number)
-      .sort((a, b) => b - a);
-    for (const threshold of penaltyKeys) {
-      if (consecutiveWrong >= threshold) {
-        points += POINT_RULES.consecutiveWrongPenalty[threshold];
-        break;
-      }
-    }
-
-    return points;
+    // 完全错误：不扣分，只是不加分
+    return 0;
   }
 }
 

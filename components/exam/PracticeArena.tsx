@@ -83,23 +83,31 @@ export function PracticeArena({ examName = "考研数学" }: PracticeArenaProps)
   })
   const [answeredCount, setAnsweredCount] = useState(0)
 
-  // 用户等级状态 - 初始化时从 localStorage 读取
+  // 用户等级状态 - 每次进入练习时重置本次统计
   const [rankState, setRankState] = useState<UserRankState>(() => {
-    const saved = loadFromStorage('examRankState', INITIAL_RANK_STATE)
-    // 每次进入练习时重置连续错误计数，避免上次的错误累积影响本次警告
+    // 每次开始新的练习，重置本次统计数据
     return {
-      ...saved,
-      consecutiveWrong: 0
+      ...INITIAL_RANK_STATE,
+      points: 0,
+      currentCombo: 0,
+      maxCombo: 0,
+      consecutiveWrong: 0,
+      todayCorrect: 0,
+      todayWrong: 0
     }
   })
 
   // 答题记录
   const [answerRecords, setAnswerRecords] = useState<AnswerRecord[]>([])
 
-  // 错题本 - 初始化时从 localStorage 读取
-  const [wrongQuestions, setWrongQuestions] = useState<WrongQuestion[]>(() => {
-    return loadFromStorage('examWrongQuestions', [])
-  })
+  // 错题本 - 初始化为空，客户端加载后从 localStorage 读取
+  const [wrongQuestions, setWrongQuestions] = useState<WrongQuestion[]>([])
+
+  // 客户端加载错题本数据
+  useEffect(() => {
+    const saved = loadFromStorage('examWrongQuestions', [])
+    setWrongQuestions(saved)
+  }, [])
 
   // UI 状态
   const [showFeedback, setShowFeedback] = useState(false)
@@ -597,37 +605,23 @@ export function PracticeArena({ examName = "考研数学" }: PracticeArenaProps)
             </div>
           </div>
         )}
-
+ {/* 题目卡片 */}
+            <QuestionCard
+              question={currentQuestion}
+              questionNumber={currentIndex + 1}
+              totalQuestions={questions.length}
+              onAnswer={handleAnswer}
+              disabled={showFeedback || isPaused}
+            />
         {/* 正常显示答题区 */}
         {!isLoadingQuestions && questions.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* 左侧等级面板 */}
-            <div className="lg:col-span-1">
-              <RankPanel rankState={rankState} />
-            </div>
+          <div className="space-y-4">
+            {/* 统计面板在上方 */}
+            <RankPanel rankState={rankState} totalQuestions={questions.length} />
 
-            {/* 右侧答题区 */}
-            <div className="lg:col-span-3 space-y-4">
-              {/* 题目卡片 */}
-              <QuestionCard
-                question={currentQuestion}
-                questionNumber={currentIndex + 1}
-                totalQuestions={questions.length}
-                onAnswer={handleAnswer}
-                disabled={showFeedback || isPaused}
-              />
+           
 
-              {/* 进度条 */}
-              <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-neutral-500 dark:text-neutral-400">答题进度</span>
-                  <span className="text-sm text-neutral-950 dark:text-white">
-                    {currentIndex + 1} / {questions.length}
-                  </span>
-                </div>
-                <Progress value={progressPercent} className="h-2" />
-              </div>
-            </div>
+          
           </div>
         )}
       </main>
