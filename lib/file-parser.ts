@@ -33,9 +33,10 @@ export const MAX_TEXT_LENGTH = 8000
 export const SUPPORTED_FILE_TYPES = [
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/msword', // .doc
 ]
 
-export const SUPPORTED_EXTENSIONS = ['.pdf', '.docx']
+export const SUPPORTED_EXTENSIONS = ['.pdf', '.docx', '.doc']
 
 /**
  * 文件解析结果
@@ -65,7 +66,7 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
   if (!SUPPORTED_EXTENSIONS.includes(extension)) {
     return {
       valid: false,
-      error: `不支持的文件格式，请上传 PDF 或 Word (.docx) 文件`
+      error: `不支持的文件格式，请上传 PDF 或 Word (.doc/.docx) 文件`
     }
   }
 
@@ -218,7 +219,7 @@ export async function parseFile(file: File): Promise<ParseResult> {
 
   if (extension === '.pdf') {
     return parsePDF(file)
-  } else if (extension === '.docx') {
+  } else if (extension === '.docx' || extension === '.doc') {
     return parseWord(file)
   }
 
