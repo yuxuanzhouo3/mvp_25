@@ -12,7 +12,7 @@ import { BannerAd } from "@/components/banner-ad"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Crown, Share2, TrendingUp, Brain, Loader2, Home } from "lucide-react"
+import { Crown, BookMarked, TrendingUp, Brain, Loader2, Home } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AiCoachModal } from "@/components/ai-coach-modal"
 import { isChinaRegion } from "@/lib/config/region"
@@ -192,12 +192,11 @@ export default function HomePage() {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setShowShareModal(true)}
-                disabled={!userProfile.role}
+                onClick={() => router.push('/exam/review')}
                 className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
               >
-                <Share2 className="w-4 h-4 mr-2" />
-                {t.home.shareResults}
+                <BookMarked className="w-4 h-4 mr-2" />
+                {t.home.viewWrongBook}
               </Button>
               <UserAvatarMenu />
             </div>

@@ -102,6 +102,7 @@ export const zhCN = {
     upgradePro: "升级Pro",
     aiCoach: "AI教练",
     shareResults: "分享成果",
+    viewWrongBook: "查看错题集",
     skillAssessment: "技能评估",
     rolePositioning: "角色定位",
     learningPath: "学习路径",

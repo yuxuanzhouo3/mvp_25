@@ -104,6 +104,7 @@ export const enUS: Translations = {
     upgradePro: "Upgrade Pro",
     aiCoach: "AI Coach",
     shareResults: "Share Results",
+    viewWrongBook: "Wrong Book",
     skillAssessment: "Skill Assessment",
     rolePositioning: "Role Positioning",
     learningPath: "Learning Path",
