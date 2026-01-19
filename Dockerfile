@@ -20,8 +20,11 @@ COPY . .
 # 这里的环境变量对于构建可能是必须的，如果有报错再调整
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# 👇 新增这一行：设置一个假的 Key 来骗过构建检查
+# 👇 新增这些行：设置假的 Key 来骗过构建检查
 ENV OPENAI_API_KEY="sk-1234567890_dummy_key_for_build"
+ENV NEXT_PUBLIC_SUPABASE_URL="https://dummy.supabase.co"
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="dummy_anon_key_for_build"
+ENV SUPABASE_SERVICE_ROLE_KEY="dummy_service_role_key_for_build"
 
 # 开始构建
 RUN npm run build
