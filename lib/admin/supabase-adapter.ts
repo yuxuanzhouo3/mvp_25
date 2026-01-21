@@ -693,13 +693,18 @@ export class SupabaseAdminAdapter implements AdminDatabaseAdapter {
    * 更新普通用户
    */
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const data: any = {};
+    const data: any = {
+      updated_at: new Date().toISOString(),
+    };
 
+    // 只更新 profiles 表中实际存在的字段
     if (updates.name !== undefined) data.name = updates.name;
-    // subscription_plan 和 pro_expires_at 可能不在 profiles 表中
-    // if (updates.subscription_plan !== undefined) data.subscription_plan = updates.subscription_plan;
-    // if (updates.pro_expires_at !== undefined) data.pro_expires_at = updates.pro_expires_at;
-    if (updates.status !== undefined) data.status = updates.status;
+    if (updates.email !== undefined) data.email = updates.email;
+    if (updates.avatar !== undefined) data.avatar = updates.avatar;
+    if (updates.region !== undefined) data.region = updates.region;
+
+    // 注意: subscription_plan, pro_expires_at, status 等字段不在 profiles 表中
+    // 这些字段在 dbToUser() 中使用默认值
 
     const result = await this.supabase
       .from("profiles")

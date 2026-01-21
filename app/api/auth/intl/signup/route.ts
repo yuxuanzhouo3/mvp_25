@@ -38,6 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 创建用户资料记录（用于后台管理系统）
+    let profileCreated = false;
+    let profileError = null;
+
     if (data.user) {
       const displayNameValue = displayName || email.split("@")[0];
       console.log("📝 [Profile] Creating profile for user:", data.user.id, displayNameValue);
@@ -53,8 +56,14 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error("❌ [Profile] Failed to create profile:", error);
         console.error("Error details:", JSON.stringify(error, null, 2));
+        profileError = {
+          message: error.message,
+          code: error.code,
+          details: error,
+        };
       } else {
         console.log("✅ [Profile] Profile created successfully:", profileData);
+        profileCreated = true;
       }
     }
 
@@ -65,7 +74,11 @@ export async function POST(request: NextRequest) {
         email: data.user?.email,
         displayName: displayName || email.split("@")[0],
       },
-      message: "注册成功，请检查邮箱激活账户",
+      profileCreated,
+      profileError,
+      message: profileCreated
+        ? "注册成功，请检查邮箱激活账户"
+        : "注册成功，但用户资料创建失败，请联系管理员",
     });
   } catch (error: any) {
     console.error("Signup error:", error);
