@@ -15,6 +15,11 @@ import {
   setConfigs,
   type SystemConfig,
 } from "@/actions/admin-settings";
+import {
+  createTestPayments,
+  createTestPaymentsCN,
+  deleteTestData,
+} from "@/actions/admin-test-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +36,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Badge,
+} from "@/components/ui/badge";
+import {
   Loader2,
   RefreshCw,
   Save,
@@ -41,6 +49,9 @@ import {
   Shield,
   Bell,
   Globe,
+  FlaskConical,
+  Trash2,
+  CheckCircle2,
 } from "lucide-react";
 
 // 配置项定义
@@ -305,6 +316,12 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // 测试数据相关状态
+  const [creatingTest, setCreatingTest] = useState(false);
+  const [creatingTestCN, setCreatingTestCN] = useState(false);
+  const [deletingTest, setDeletingTest] = useState(false);
+  const [testResult, setTestResult] = useState<any>(null);
+
   // ==================== 数据加载 ====================
   async function loadConfigs() {
     setLoading(true);
@@ -401,6 +418,78 @@ export default function SettingsPage() {
         ),
       },
     }));
+  }
+
+  // ==================== 创建测试数据 ====================
+  async function handleCreateTestData() {
+    setCreatingTest(true);
+    setError(null);
+    setTestResult(null);
+
+    try {
+      const result = await createTestPayments();
+
+      if (result.success) {
+        setTestResult(result.data);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError(result.error || "创建测试数据失败");
+      }
+    } catch (err: any) {
+      setError("创建测试数据失败: " + (err.message || "未知错误"));
+    } finally {
+      setCreatingTest(false);
+    }
+  }
+
+  // ==================== 删除测试数据 ====================
+  async function handleDeleteTestData() {
+    if (!confirm("确定要删除所有测试数据吗？此操作不可恢复。")) {
+      return;
+    }
+
+    setDeletingTest(true);
+    setError(null);
+
+    try {
+      const result = await deleteTestData();
+
+      if (result.success) {
+        setTestResult({ deleted: result.data?.deleted || 0 });
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError(result.error || "删除测试数据失败");
+      }
+    } catch (err: any) {
+      setError("删除测试数据失败: " + (err.message || "未知错误"));
+    } finally {
+      setDeletingTest(false);
+    }
+  }
+
+  // ==================== 创建国内测试数据 ====================
+  async function handleCreateTestDataCN() {
+    setCreatingTestCN(true);
+    setError(null);
+    setTestResult(null);
+
+    try {
+      const result = await createTestPaymentsCN();
+
+      if (result.success) {
+        setTestResult(result.data);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError(result.error || "创建国内测试数据失败");
+      }
+    } catch (err: any) {
+      setError("创建国内测试数据失败: " + (err.message || "未知错误"));
+    } finally {
+      setCreatingTestCN(false);
+    }
   }
 
   // ==================== 渲染配置输入 ====================
@@ -518,7 +607,7 @@ export default function SettingsPage() {
         </div>
       ) : (
         <Tabs defaultValue="general" className="space-y-4">
-          <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-4 md:grid-cols-7 w-full">
             {Object.entries(configs).map(([key, config]) => {
               const Icon = config.icon;
               return (
@@ -528,6 +617,11 @@ export default function SettingsPage() {
                 </TabsTrigger>
               );
             })}
+            {/* 测试数据 Tab */}
+            <TabsTrigger value="testdata" className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4" />
+              <span className="hidden md:inline">测试数据</span>
+            </TabsTrigger>
           </TabsList>
 
           {Object.entries(configs).map(([categoryKey, categoryConfig]) => {
@@ -574,6 +668,167 @@ export default function SettingsPage() {
               </TabsContent>
             );
           })}
+
+          {/* 测试数据 Tab Content */}
+          <TabsContent value="testdata">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                    <FlaskConical className="h-5 w-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <CardTitle>测试数据管理</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      创建和删除测试数据，用于开发和演示
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* 操作按钮 */}
+                <div className="space-y-3">
+                  <div className="flex flex-col md:flex-row gap-3">
+                    <Button
+                      onClick={handleCreateTestData}
+                      disabled={creatingTest}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    >
+                      {creatingTest ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          创建中...
+                        </>
+                      ) : (
+                        <>
+                          <Globe className="h-4 w-4 mr-2" />
+                          创建国际支付数据（Stripe + PayPal）
+                        </>
+                      )}
+                    </Button>
+
+                    <Button
+                      onClick={handleCreateTestDataCN}
+                      disabled={creatingTestCN}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      {creatingTestCN ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          创建中...
+                        </>
+                      ) : (
+                        <>
+                          <FlaskConical className="h-4 w-4 mr-2" />
+                          创建国内支付数据（WeChat + Alipay）
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <Button
+                    onClick={handleDeleteTestData}
+                    disabled={deletingTest}
+                    variant="destructive"
+                    className="w-full"
+                  >
+                    {deletingTest ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        删除中...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        删除所有测试数据
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* 操作结果 */}
+                {testResult && (
+                  <Alert className={testResult.deleted ? "border-orange-600" : "border-green-600"}>
+                    <CheckCircle2 className="h-4 w-4" />
+                    <AlertDescription>
+                      {testResult.deleted !== undefined ? (
+                        <div>
+                          <p className="font-semibold">删除完成</p>
+                          <p className="text-sm">已删除 {testResult.deleted} 条测试数据</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-semibold">创建完成</p>
+                          <div className="text-sm space-y-1 mt-2">
+                            <p>✅ 成功创建 {testResult.created} 条测试支付</p>
+                            {testResult.failed > 0 && (
+                              <p className="text-red-600">❌ 失败 {testResult.failed} 条</p>
+                            )}
+                            <div className="mt-3 p-3 bg-muted rounded text-xs space-y-1">
+                              <p><strong>统计摘要：</strong></p>
+                              <p>• Stripe: {testResult.summary?.stripe || 0} 条</p>
+                              <p>• PayPal: {testResult.summary?.paypal || 0} 条</p>
+                              <p>• WeChat: {testResult.summary?.wechat || 0} 条</p>
+                              <p>• Alipay: {testResult.summary?.alipay || 0} 条</p>
+                              <p>• 总金额(USD): ${testResult.summary?.totalUSD || 0}</p>
+                              <p>• 总金额(CNY): ¥{testResult.summary?.totalCNY || 0}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* 说明文档 */}
+                <div className="border rounded-lg p-4 space-y-3">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <FlaskConical className="h-4 w-4" />
+                    测试数据说明
+                  </h3>
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p className="font-medium">国际支付（Stripe + PayPal）：</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-xs">
+                      <li>存储在 Supabase（国际版数据库）</li>
+                      <li>Stripe: 4 笔（包含 pending 状态）</li>
+                      <li>PayPal: 1 笔</li>
+                      <li>总计: $377.97 USD</li>
+                    </ul>
+
+                    <p className="font-medium mt-4">国内支付（WeChat + Alipay）：</p>
+                    <ul className="list-disc list-inside space-y-1 ml-4 text-xs">
+                      <li>存储在 CloudBase（国内版数据库）</li>
+                      <li>微信支付: 2 笔</li>
+                      <li>支付宝: 1 笔</li>
+                      <li>总计: ¥597.00 CNY</li>
+                    </ul>
+
+                    <p className="mt-3 text-orange-600 font-medium">
+                      ⚠️ 注意：这些是测试数据，仅用于开发和演示环境。
+                    </p>
+                    <p className="mt-2 text-blue-600">
+                      💡 创建后，双数据库适配器会自动聚合 Supabase 和 CloudBase 的数据，
+                      您可以在"支付记录"和"仪表板"查看完整的统计信息。
+                    </p>
+                  </div>
+                </div>
+
+                {/* 快速跳转 */}
+                <div className="flex gap-3">
+                  <Button variant="outline" asChild>
+                    <a href="/admin/payments">
+                      查看支付记录
+                    </a>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <a href="/admin/dashboard">
+                      查看仪表板
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       )}
     </div>

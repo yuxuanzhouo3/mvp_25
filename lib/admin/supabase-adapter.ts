@@ -987,7 +987,7 @@ export class SupabaseAdminAdapter implements AdminDatabaseAdapter {
       user_email: doc.user_email,
       amount: doc.amount || 0,
       currency: doc.currency || "USD",
-      method: doc.method || "stripe",
+      method: doc.provider || doc.method || "stripe", // 优先从 provider 字段读取
       status: doc.status || "pending",
       type: doc.product_type || "subscription",
       product_id: doc.product_id,

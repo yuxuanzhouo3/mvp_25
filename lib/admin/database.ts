@@ -21,20 +21,12 @@ import type {
 // ==================== 数据库适配器工厂 ====================
 
 /**
- * 获取当前环境的数据库类型
- *
- * @returns 数据库类型
- */
-export function getDatabaseType(): "cloudbase" | "supabase" {
-  const region = process.env.NEXT_PUBLIC_DEPLOYMENT_REGION;
-  return region === "CN" ? "cloudbase" : "supabase";
-}
-
-/**
  * 获取数据库适配器实例
  *
- * 根据当前环境返回对应的数据库适配器
+ * 返回双数据库适配器，同时连接 Supabase 和 CloudBase
  * 使用单例模式避免重复初始化
+ *
+ * @returns 数据库适配器实例
  */
 let adapterInstance: AdminDatabaseAdapter | null = null;
 
@@ -43,16 +35,9 @@ export async function getDatabaseAdapter(): Promise<AdminDatabaseAdapter> {
     return adapterInstance;
   }
 
-  const dbType = getDatabaseType();
-
-  // 动态导入适配器实现
-  if (dbType === "cloudbase") {
-    const { CloudBaseAdminAdapter } = await import("./cloudbase-adapter");
-    adapterInstance = new CloudBaseAdminAdapter();
-  } else {
-    const { SupabaseAdminAdapter } = await import("./supabase-adapter");
-    adapterInstance = new SupabaseAdminAdapter();
-  }
+  // 使用双数据库适配器，同时查询 Supabase 和 CloudBase
+  const { DualDatabaseAdapter } = await import("./dual-database-adapter");
+  adapterInstance = new DualDatabaseAdapter();
 
   return adapterInstance;
 }

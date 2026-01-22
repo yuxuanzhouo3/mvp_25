@@ -338,33 +338,33 @@ export async function requireSuperAdmin(adminId: string): Promise<void> {
 async function getAdminWithPassword(
   username: string
 ): Promise<{ id: string; username: string; password_hash: string; role: string; status: string } | null> {
-  const db = await getDatabaseAdapter();
-  const dbType = (await import("./database")).getDatabaseType();
-
-  if (dbType === "cloudbase") {
+  // 查询两个数据库以支持双数据库架构
+  try {
     // CloudBase 查询
     const { getCloudBaseDatabase } = await import("@/lib/cloudbase/init");
     const database = getCloudBaseDatabase();
 
-    const result = await database
+    const cloudbaseResult = await database
       .collection("admin_users")
       .where({ username })
       .field({ id: true, username: true, password_hash: true, role: true, status: true })
       .get();
 
-    if (result.data.length === 0) {
-      return null;
+    if (cloudbaseResult.data.length > 0) {
+      return {
+        id: cloudbaseResult.data[0]._id,
+        username: cloudbaseResult.data[0].username,
+        password_hash: cloudbaseResult.data[0].password_hash,
+        role: cloudbaseResult.data[0].role,
+        status: cloudbaseResult.data[0].status,
+      };
     }
+  } catch (error) {
+    console.error("CloudBase 查询失败:", error);
+  }
 
-    return {
-      id: result.data[0]._id,
-      username: result.data[0].username,
-      password_hash: result.data[0].password_hash,
-      role: result.data[0].role,
-      status: result.data[0].status,
-    };
-  } else {
-    // Supabase 查询
+  // Supabase 查询（作为后备或并行查询）
+  try {
     const { getSupabaseAdmin } = await import("@/lib/integrations/supabase-admin");
     const supabase = getSupabaseAdmin();
 
@@ -374,12 +374,14 @@ async function getAdminWithPassword(
       .eq("username", username)
       .single();
 
-    if (result.error || !result.data) {
-      return null;
+    if (result.data && !result.error) {
+      return result.data;
     }
-
-    return result.data;
+  } catch (error) {
+    console.error("Supabase 查询失败:", error);
   }
+
+  return null;
 }
 
 /**
