@@ -12,7 +12,6 @@
 
 import { useState, useEffect } from "react";
 import { getUserStats } from "@/actions/admin-users";
-import { getAssessmentStats } from "@/actions/admin-assessments";
 import { getPaymentStats } from "@/actions/admin-payments";
 import { getAdStats } from "@/actions/admin-ads";
 import { getReleaseStats } from "@/actions/admin-releases";
@@ -23,7 +22,6 @@ import {
   RefreshCw,
   Users,
   DollarSign,
-  FileText,
   Image,
   Tag,
   TrendingUp,
@@ -41,7 +39,6 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [userStats, setUserStats] = useState<any>(null);
-  const [assessmentStats, setAssessmentStats] = useState<any>(null);
   const [paymentStats, setPaymentStats] = useState<any>(null);
   const [adStats, setAdStats] = useState<any>(null);
   const [releaseStats, setReleaseStats] = useState<any>(null);
@@ -50,16 +47,14 @@ export default function DashboardPage() {
   async function loadAllStats() {
     setError(null);
     try {
-      const [users, assessments, payments, ads, releases] = await Promise.all([
+      const [users, payments, ads, releases] = await Promise.all([
         getUserStats(),
-        getAssessmentStats(),
         getPaymentStats(),
         getAdStats(),
         getReleaseStats(),
       ]);
 
       if (users.success && users.data) setUserStats(users.data);
-      if (assessments.success && assessments.data) setAssessmentStats(assessments.data);
       if (payments.success && payments.data) setPaymentStats(payments.data);
       if (ads.success && ads.data) setAdStats(ads.data);
       if (releases.success && releases.data) setReleaseStats(releases.data);
@@ -126,7 +121,7 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* 核心指标卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* 总用户数 */}
             <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
               <CardHeader className="pb-2">
@@ -157,22 +152,6 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-xs text-green-100 mt-2">
                   本月: {formatAmount(paymentStats?.thisMonthAmount || 0)}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 总评估数 */}
-            <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-purple-100 flex items-center justify-between">
-                  <span>总评估数</span>
-                  <FileText className="h-4 w-4" />
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{assessmentStats?.total || 0}</div>
-                <div className="text-xs text-purple-100 mt-2">
-                  平均分: {assessmentStats?.averageScore?.toFixed(1) || "0.0"}
                 </div>
               </CardContent>
             </Card>
@@ -267,44 +246,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* 评估统计详情 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-purple-600" />
-                  评估统计
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">总评估数</span>
-                    <span className="font-semibold">{assessmentStats?.total || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">本月评估</span>
-                    <span className="font-semibold">{assessmentStats?.thisMonth || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">今日评估</span>
-                    <span className="font-semibold">{assessmentStats?.today || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">已完成</span>
-                    <span className="font-semibold text-green-600">
-                      {assessmentStats?.completed || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">进行中</span>
-                    <span className="font-semibold text-yellow-600">
-                      {assessmentStats?.inProgress || 0}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* 系统状态 */}
             <Card>
               <CardHeader>
@@ -341,7 +282,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 趋势图表 */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 用户类型分布 */}
             <Card>
               <CardHeader>
@@ -387,39 +328,6 @@ export default function DashboardPage() {
                     { label: "禁用", value: adStats?.inactive || 0, color: "bg-gray-400" },
                   ].map((item) => {
                     const total = (adStats?.total || 1);
-                    const percentage = (item.value / total * 100).toFixed(1);
-                    return (
-                      <div key={item.label}>
-                        <div className="flex items-center justify-between text-sm mb-1">
-                          <span>{item.label}</span>
-                          <span className="text-muted-foreground">{percentage}%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${item.color} transition-all`}
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 评估完成率 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">评估完成率</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { label: "已完成", value: assessmentStats?.completed || 0, color: "bg-green-500" },
-                    { label: "进行中", value: assessmentStats?.inProgress || 0, color: "bg-yellow-500" },
-                    { label: "已放弃", value: assessmentStats?.abandoned || 0, color: "bg-red-500" },
-                  ].map((item) => {
-                    const total = (assessmentStats?.total || 1);
                     const percentage = (item.value / total * 100).toFixed(1);
                     return (
                       <div key={item.label}>

@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
-  ClipboardList,
   CreditCard,
   Image,
   FolderOpen,
@@ -44,11 +43,6 @@ const navItems = [
     href: "/admin/users",
     label: "用户管理",
     icon: Users,
-  },
-  {
-    href: "/admin/assessments",
-    label: "评估记录",
-    icon: ClipboardList,
   },
   {
     href: "/admin/payments",
