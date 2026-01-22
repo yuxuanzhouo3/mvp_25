@@ -102,6 +102,7 @@ export default function PaymentsManagementPage() {
         const query = searchQuery.toLowerCase();
         return (
           payment.user_email?.toLowerCase().includes(query) ||
+          payment.order_id?.toLowerCase().includes(query) ||
           payment.id.toLowerCase().includes(query)
         );
       }
@@ -539,7 +540,7 @@ export default function PaymentsManagementPage() {
                       <TableRow key={payment.id}>
                         <TableCell>
                           <div className="font-mono text-xs">
-                            {payment.id.slice(0, 12)}...
+                            {payment.order_id || payment.id.slice(0, 12)}...
                           </div>
                         </TableCell>
                         <TableCell>
@@ -644,7 +645,7 @@ export default function PaymentsManagementPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">订单ID：</span>
-                  <div className="font-mono text-xs mt-1">{viewingPayment.id}</div>
+                  <div className="font-mono text-xs mt-1">{viewingPayment.order_id || viewingPayment.id}</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">用户ID：</span>

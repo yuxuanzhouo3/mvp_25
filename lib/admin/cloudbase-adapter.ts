@@ -1000,17 +1000,18 @@ export class CloudBaseAdminAdapter implements AdminDatabaseAdapter {
   private dbToPayment(doc: any): Payment {
     return {
       id: doc._id || doc.id,
+      order_id: doc.order_id,
       user_id: doc.user_id,
       user_email: doc.user_email,
       amount: doc.amount || 0,
       currency: doc.currency || "CNY",
-      method: doc.method || "wechat",
+      method: doc.payment_method || "wechat",
       status: doc.status || "pending",
-      type: doc.product_type || "subscription",
+      type: doc.billing_cycle || "subscription",
       product_id: doc.product_id,
       created_at: doc.created_at,
       updated_at: doc.updated_at,
-      completed_at: doc.completed_at,
+      completed_at: doc.paid_at,
     };
   }
 

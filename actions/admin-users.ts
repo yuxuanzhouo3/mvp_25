@@ -203,19 +203,34 @@ export async function getUserStats(): Promise<ApiResponse<{
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [total, free, pro, enterprise, newThisMonth, activeThisWeek] = await Promise.all([
-      db.countUsers(),
-      db.countUsers({ subscription_plan: "free" }),
-      db.countUsers({ subscription_plan: "pro" }),
-      db.countUsers({ subscription_plan: "enterprise" }),
-      db.countUsers({ start_date: startOfMonth }),
-      db.countUsers({ start_date: startOfWeek }),
-    ]);
+    // 获取所有用户进行统计
+    const allUsers = await db.listUsers({ limit: 10000 });
+
+    // 在内存中统计
+    const free = allUsers.filter(u =>
+      !u.subscription_plan || u.subscription_plan === "free"
+    ).length;
+
+    const pro = allUsers.filter(u =>
+      u.subscription_plan === "yearly" || u.subscription_plan === "monthly"
+    ).length;
+
+    const enterprise = allUsers.filter(u =>
+      u.subscription_plan === "enterprise"
+    ).length;
+
+    const newThisMonth = allUsers.filter(u =>
+      u.created_at >= startOfMonth
+    ).length;
+
+    const activeThisWeek = allUsers.filter(u =>
+      u.last_login_at && u.last_login_at >= startOfWeek
+    ).length;
 
     return {
       success: true,
       data: {
-        total,
+        total: allUsers.length,
         free,
         pro,
         enterprise,

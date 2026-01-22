@@ -267,6 +267,14 @@ export default function UsersManagementPage() {
             企业版
           </Badge>
         );
+      case "yearly":
+      case "monthly":
+        return (
+          <Badge variant="secondary" className="gap-1">
+            <Gem className="h-3 w-3" />
+            专业版
+          </Badge>
+        );
       case "pro":
         return (
           <Badge variant="secondary" className="gap-1">
