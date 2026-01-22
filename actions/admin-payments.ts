@@ -122,16 +122,16 @@ export async function getPaymentStats(): Promise<ApiResponse<{
     // 按支付方式统计
     const byMethod = {
       wechat: allPayments
-        .filter((p) => p.payment_method === "wechat" && p.status === "paid")
+        .filter((p) => p.method === "wechat" && p.status === "paid")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
       alipay: allPayments
-        .filter((p) => p.payment_method === "alipay" && p.status === "paid")
+        .filter((p) => p.method === "alipay" && p.status === "paid")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
       stripe: allPayments
-        .filter((p) => p.payment_method === "stripe" && p.status === "paid")
+        .filter((p) => p.method === "stripe" && p.status === "paid")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
       paypal: allPayments
-        .filter((p) => p.payment_method === "paypal" && p.status === "paid")
+        .filter((p) => p.method === "paypal" && p.status === "paid")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
     };
 

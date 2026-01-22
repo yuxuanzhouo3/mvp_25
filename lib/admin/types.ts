@@ -879,7 +879,7 @@ export type PaymentMethod = "wechat" | "alipay" | "stripe" | "paypal";
 /**
  * 支付状态
  */
-export type PaymentStatus = "pending" | "completed" | "failed" | "refunded";
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 
 /**
  * 支付类型
@@ -891,6 +891,7 @@ export type PaymentType = "subscription" | "tokens" | "pro";
  */
 export interface Payment {
   id: string;
+  order_id?: string;
   user_id: string;
   user_email?: string;
   amount: number;
