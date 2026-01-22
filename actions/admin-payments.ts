@@ -111,31 +111,37 @@ export async function getPaymentStats(): Promise<ApiResponse<{
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
-    const [total, thisMonth, today, allPayments] = await Promise.all([
-      db.countPayments(),
-      db.countPayments({ start_date: startOfMonth }),
-      db.countPayments({ start_date: startOfDay }),
-      db.listPayments({ limit: 10000 }), // 获取所有支付计算收入
-    ]);
+    // 获取所有支付记录
+    const allPayments = await db.listPayments({ limit: 10000 });
+
+    // 只统计已成功支付的订单（paid 状态）
+    const paidPayments = allPayments.filter((p) => p.status === "paid");
+
+    // 统计各时间段的支付数量
+    const total = paidPayments.length;
+    const thisMonth = paidPayments.filter(
+      (p) => p.created_at && p.created_at >= startOfMonth
+    ).length;
+    const today = paidPayments.filter(
+      (p) => p.created_at && p.created_at >= startOfDay
+    ).length;
 
     // 计算总收入
-    const totalRevenue = allPayments
-      .filter((p) => p.status === "paid")
-      .reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalRevenue = paidPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
     // 按支付方式统计
     const byMethod = {
-      wechat: allPayments
-        .filter((p) => p.method === "wechat" && p.status === "paid")
+      wechat: paidPayments
+        .filter((p) => p.method === "wechat")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
-      alipay: allPayments
-        .filter((p) => p.method === "alipay" && p.status === "paid")
+      alipay: paidPayments
+        .filter((p) => p.method === "alipay")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
-      stripe: allPayments
-        .filter((p) => p.method === "stripe" && p.status === "paid")
+      stripe: paidPayments
+        .filter((p) => p.method === "stripe")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
-      paypal: allPayments
-        .filter((p) => p.method === "paypal" && p.status === "paid")
+      paypal: paidPayments
+        .filter((p) => p.method === "paypal")
         .reduce((sum, p) => sum + (p.amount || 0), 0),
     };
 

@@ -3,10 +3,12 @@
  *
  * 为所有管理后台页面提供统一的布局
  * 包含侧边栏和主内容区
+ * 不使用用户端认证 Provider（Supabase/CloudBase）
  */
 
 import { getAdminSession } from "@/lib/admin/session";
 import AdminSidebar from "./components/AdminSidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default async function AdminLayout({
   children,
@@ -38,6 +40,8 @@ export default async function AdminLayout({
           {children}
         </main>
       </div>
+      {/* 管理后台使用独立的 Toaster，不依赖用户端认证 */}
+      <Toaster />
     </div>
   );
 }

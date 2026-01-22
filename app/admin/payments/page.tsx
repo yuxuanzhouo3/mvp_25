@@ -82,7 +82,7 @@ export default function PaymentsManagementPage() {
 
   // 筛选状态
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("paid");
   const [filterMethod, setFilterMethod] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
 
@@ -279,11 +279,11 @@ export default function PaymentsManagementPage() {
       )}
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {statsLoading ? (
           // 骨架屏：加载时显示
           <>
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <Card key={i}>
                 <CardHeader className="pb-2">
                   <Skeleton className="h-4 w-24" />
@@ -340,25 +340,6 @@ export default function PaymentsManagementPage() {
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
                   {formatAmount(stats.totalRevenue, "CNY")}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  完成率
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.total > 0
-                    ? Math.round(
-                        (payments.filter((p) => p.status === "paid" || p.status === "completed").length /
-                          stats.total) *
-                          100
-                      )
-                    : 0}
-                  %
                 </div>
               </CardContent>
             </Card>

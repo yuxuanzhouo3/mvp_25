@@ -350,11 +350,11 @@ export default function UsersManagementPage() {
       )}
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {statsLoading ? (
           // 骨架屏：加载时显示
           <>
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <Card key={i}>
                 <CardHeader className="pb-2">
                   <Skeleton className="h-4 w-24" />
@@ -405,16 +405,6 @@ export default function UsersManagementPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  企业版用户
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-purple-600">{stats.enterprise}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
                   本周活跃
                 </CardTitle>
               </CardHeader>
@@ -450,7 +440,6 @@ export default function UsersManagementPage() {
                 <SelectItem value="all">全部类型</SelectItem>
                 <SelectItem value="free">免费版</SelectItem>
                 <SelectItem value="pro">专业版</SelectItem>
-                <SelectItem value="enterprise">企业版</SelectItem>
               </SelectContent>
             </Select>
 
@@ -791,7 +780,6 @@ export default function UsersManagementPage() {
                   <SelectContent>
                     <SelectItem value="free">免费版</SelectItem>
                     <SelectItem value="pro">专业版</SelectItem>
-                    <SelectItem value="enterprise">企业版</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
