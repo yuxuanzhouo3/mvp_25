@@ -1,63 +1,67 @@
 "use client";
 
 /**
- * 管理后台 - 数据统计仪表板
+ * 管理后台 - 数据统计页面
  *
- * 完整功能：
- * - 综合数据统计展示
- * - 用户、支付、评估、广告等模块数据汇总
- * - 实时数据刷新
- * - 图表展示
+ * 改造后的统计页面，参考模板项目设计
+ * 包含：核心指标卡片、版本对比、趋势图表等
  */
 
 import { useState, useEffect } from "react";
-import { getUserStats } from "@/actions/admin-users";
-import { getPaymentStats } from "@/actions/admin-payments";
-import { getAdStats } from "@/actions/admin-ads";
-import { getReleaseStats } from "@/actions/admin-releases";
+import { getUserStats, getUserTrends } from "@/actions/admin-users";
+import { getPaymentStats, getPaymentTrends } from "@/actions/admin-payments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Loader2,
-  RefreshCw,
   Users,
   DollarSign,
-  Image,
-  Tag,
   TrendingUp,
   Activity,
-  CheckCircle,
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
 export default function DashboardPage() {
   // ==================== 状态管理 ====================
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState("30"); // 时间范围（天）
 
   const [userStats, setUserStats] = useState<any>(null);
   const [paymentStats, setPaymentStats] = useState<any>(null);
-  const [adStats, setAdStats] = useState<any>(null);
-  const [releaseStats, setReleaseStats] = useState<any>(null);
+  const [userTrends, setUserTrends] = useState<any>(null);
+  const [paymentTrends, setPaymentTrends] = useState<any>(null);
 
   // ==================== 数据加载 ====================
   async function loadAllStats() {
     setError(null);
     try {
-      const [users, payments, ads, releases] = await Promise.all([
+      const days = parseInt(timeRange);
+      const [users, payments, userTrendData, paymentTrendData] = await Promise.all([
         getUserStats(),
         getPaymentStats(),
-        getAdStats(),
-        getReleaseStats(),
+        getUserTrends(days),
+        getPaymentTrends(days),
       ]);
 
       if (users.success && users.data) setUserStats(users.data);
       if (payments.success && payments.data) setPaymentStats(payments.data);
-      if (ads.success && ads.data) setAdStats(ads.data);
-      if (releases.success && releases.data) setReleaseStats(releases.data);
+      if (userTrendData.success && userTrendData.data) setUserTrends(userTrendData.data);
+      if (paymentTrendData.success && paymentTrendData.data) setPaymentTrends(paymentTrendData.data);
     } catch (err) {
       setError("加载统计数据失败");
     } finally {
@@ -68,7 +72,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadAllStats();
-  }, []);
+  }, [timeRange]);
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -93,13 +97,13 @@ export default function DashboardPage() {
       {/* 页头 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">数据统计仪表板</h1>
+          <h1 className="text-2xl font-bold">用户数据统计</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            实时查看系统各项数据统计
+            查看用户、付费、设备等统计数据
           </p>
         </div>
         <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+          <Loader2 className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
           刷新数据
         </Button>
       </div>
@@ -121,160 +125,111 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* 核心指标卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 总用户数 */}
-            <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-blue-100 flex items-center justify-between">
-                  <span>总用户数</span>
-                  <Users className="h-4 w-4" />
-                </CardTitle>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">总用户数</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{userStats?.total || 0}</div>
-                <div className="text-xs text-blue-100 mt-2">
-                  本月新增: {userStats?.newThisMonth || 0}
-                </div>
+                <div className="text-3xl font-bold text-foreground">{formatNumber(userStats?.total || 0)}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  今日新增 <span className="font-semibold text-green-600">+{userStats?.newToday || 0}</span>
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* 月活用户 */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">月活用户</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-foreground">{formatNumber(userStats?.monthlyActive || 0)}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  日活 <span className="font-medium">{userStats?.dailyActive || 0}</span> / 周活 <span className="font-medium">{userStats?.activeThisWeek || 0}</span>
+                </p>
               </CardContent>
             </Card>
 
             {/* 总收入 */}
-            <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-green-100 flex items-center justify-between">
-                  <span>总收入</span>
-                  <DollarSign className="h-4 w-4" />
-                </CardTitle>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">总收入</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">
+                <div className="text-3xl font-bold text-foreground">
                   {formatAmount(paymentStats?.totalRevenue || 0)}
                 </div>
-                <div className="text-xs text-green-100 mt-2">
-                  本月: {formatAmount(paymentStats?.thisMonthAmount || 0)}
-                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  今日: <span className="font-semibold text-green-600">+{formatAmount(paymentTrends?.todayRevenue || 0)}</span>
+                </p>
               </CardContent>
             </Card>
 
-            {/* 活跃广告 */}
-            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-orange-100 flex items-center justify-between">
-                  <span>活跃广告</span>
-                  <Image className="h-4 w-4" />
-                </CardTitle>
+            {/* 付费用户 */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">付费用户</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{adStats?.active || 0}</div>
-                <div className="text-xs text-orange-100 mt-2">
-                  总数: {adStats?.total || 0}
-                </div>
+                <div className="text-3xl font-bold text-foreground">{formatNumber(userStats?.paidUsers || 0)}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  转化率 <span className="font-semibold text-primary">{userStats?.conversionRate || 0}%</span>
+                </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* 详细统计 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 用户统计详情 */}
+          {/* 版本对比区域 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 国际版 */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  用户统计
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">国际版</CardTitle>
+                <p className="text-xs text-muted-foreground">数据概览</p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">免费用户</span>
-                    <span className="font-semibold">{userStats?.free || 0}</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {formatNumber(userStats?.byRegion?.international || 0)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">用户数</p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">专业版用户</span>
-                    <span className="font-semibold text-green-600">
-                      {userStats?.pro || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">企业版用户</span>
-                    <span className="font-semibold text-purple-600">
-                      {userStats?.enterprise || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">本周活跃</span>
-                    <span className="font-semibold text-blue-600">
-                      {userStats?.activeThisWeek || 0}
-                    </span>
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      ${formatNumber((paymentStats?.byMethod?.stripe || 0) + (paymentStats?.byMethod?.paypal || 0))}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">总收入</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* 支付统计详情 */}
+            {/* 国内版 */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  收入统计
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">国内版</CardTitle>
+                <p className="text-xs text-muted-foreground">数据概览</p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">总订单数</span>
-                    <span className="font-semibold">{paymentStats?.total || 0}</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {formatNumber(userStats?.byRegion?.domestic || 0)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">用户数</p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">本月订单</span>
-                    <span className="font-semibold">{paymentStats?.thisMonth || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">今日订单</span>
-                    <span className="font-semibold">{paymentStats?.today || 0}</span>
-                  </div>
-                  <div className="pt-2 border-t">
-                    <div className="text-xs text-muted-foreground mb-2">按支付方式</div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>微信: {formatAmount(paymentStats?.byMethod?.wechat || 0)}</div>
-                      <div>支付宝: {formatAmount(paymentStats?.byMethod?.alipay || 0)}</div>
-                      <div>Stripe: {formatAmount(paymentStats?.byMethod?.stripe || 0)}</div>
-                      <div>PayPal: {formatAmount(paymentStats?.byMethod?.paypal || 0)}</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 系统状态 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-orange-600" />
-                  系统状态
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">广告总数</span>
-                    <span className="font-semibold">{adStats?.total || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">草稿版本</span>
-                    <span className="font-semibold">{releaseStats?.draft || 0}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">已发布版本</span>
-                    <span className="font-semibold text-green-600">
-                      {releaseStats?.published || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">最新版本</span>
-                    <span className="font-semibold font-mono">
-                      {releaseStats?.latestVersion || "-"}
-                    </span>
+                  <div>
+                    <p className="text-3xl font-bold text-foreground">
+                      {formatAmount((paymentStats?.byMethod?.wechat || 0) + (paymentStats?.byMethod?.alipay || 0))}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">总收入</p>
                   </div>
                 </div>
               </CardContent>
@@ -282,72 +237,129 @@ export default function DashboardPage() {
           </div>
 
           {/* 趋势图表 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 用户类型分布 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">用户类型分布</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { label: "免费用户", value: userStats?.free || 0, color: "bg-gray-500" },
-                    { label: "专业版", value: userStats?.pro || 0, color: "bg-green-500" },
-                    { label: "企业版", value: userStats?.enterprise || 0, color: "bg-purple-500" },
-                  ].map((item) => {
-                    const total = (userStats?.total || 1);
-                    const percentage = (item.value / total * 100).toFixed(1);
-                    return (
-                      <div key={item.label}>
-                        <div className="flex items-center justify-between text-sm mb-1">
-                          <span>{item.label}</span>
-                          <span className="text-muted-foreground">{percentage}%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${item.color} transition-all`}
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+          <Tabs defaultValue="users" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <TabsList>
+                <TabsTrigger value="users">用户趋势</TabsTrigger>
+                <TabsTrigger value="revenue">收入趋势</TabsTrigger>
+                <TabsTrigger value="devices">设备分布</TabsTrigger>
+                <TabsTrigger value="subscriptions">订阅分布</TabsTrigger>
+              </TabsList>
 
-            {/* 广告状态分布 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">广告状态分布</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { label: "激活", value: adStats?.active || 0, color: "bg-green-500" },
-                    { label: "禁用", value: adStats?.inactive || 0, color: "bg-gray-400" },
-                  ].map((item) => {
-                    const total = (adStats?.total || 1);
-                    const percentage = (item.value / total * 100).toFixed(1);
-                    return (
-                      <div key={item.label}>
-                        <div className="flex items-center justify-between text-sm mb-1">
-                          <span>{item.label}</span>
-                          <span className="text-muted-foreground">{percentage}%</span>
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">最近 7 天</SelectItem>
+                  <SelectItem value="30">最近 30 天</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 用户趋势 */}
+            <TabsContent value="users">
+              <Card>
+                <CardHeader>
+                  <CardTitle>活跃用户趋势</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={{}} className="min-h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={userTrends?.daily || []}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="activeUsers" fill="hsl(var(--primary))" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 收入趋势 */}
+            <TabsContent value="revenue">
+              <Card>
+                <CardHeader>
+                  <CardTitle>收入趋势</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={{}} className="min-h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={paymentTrends?.daily || []}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 设备分布 */}
+            <TabsContent value="devices">
+              <Card>
+                <CardHeader>
+                  <CardTitle>设备分布</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    暂无设备数据
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 订阅分布 */}
+            <TabsContent value="subscriptions">
+              <Card>
+                <CardHeader>
+                  <CardTitle>订阅分布</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      { label: "免费用户", value: userStats?.free || 0, color: "bg-gray-500" },
+                      { label: "专业版", value: userStats?.pro || 0, color: "bg-green-500" },
+                      { label: "企业版", value: userStats?.enterprise || 0, color: "bg-purple-500" },
+                    ].map((item) => {
+                      const total = (userStats?.total || 1);
+                      const percentage = (item.value / total * 100).toFixed(1);
+                      return (
+                        <div key={item.label}>
+                          <div className="flex items-center justify-between text-sm mb-1">
+                            <span>{item.label}</span>
+                            <span className="text-muted-foreground">{percentage}%</span>
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${item.color} transition-all`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${item.color} transition-all`}
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* 数据更新时间 */}
+          <p className="text-xs text-muted-foreground text-center">
+            数据更新时间: {new Date().toLocaleString('zh-CN')}
+          </p>
         </>
       )}
     </div>

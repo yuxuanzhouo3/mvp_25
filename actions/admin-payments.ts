@@ -157,3 +157,82 @@ export async function getPaymentStats(): Promise<ApiResponse<{
     };
   }
 }
+
+/**
+ * 获取支付趋势数据
+ */
+export async function getPaymentTrends(
+  days: number = 30
+): Promise<ApiResponse<{
+  daily: Array<{ date: string; revenue: number; orders: number }>;
+  todayRevenue: number;
+  todayOrders: number;
+}>> {
+  unstable_noStore();
+
+  try {
+    const session = await requireAdminSession();
+    const db = await getDatabaseAdapter();
+
+    const now = new Date();
+    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
+    // 获取所有支付记录
+    const allPayments = await db.listPayments({ limit: 10000 });
+
+    // 按日期聚合数据
+    const dailyMap = new Map<string, { revenue: number; orders: number }>();
+
+    // 初始化每一天的数据
+    for (let i = 0; i < days; i++) {
+      const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().split('T')[0];
+      dailyMap.set(dateStr, { revenue: 0, orders: 0 });
+    }
+
+    let todayRevenue = 0;
+    let todayOrders = 0;
+
+    // 统计每日收入和订单数
+    allPayments.forEach(payment => {
+      if (payment.status === "paid" && payment.created_at) {
+        const createdDate = new Date(payment.created_at).toISOString().split('T')[0];
+
+        if (dailyMap.has(createdDate)) {
+          const data = dailyMap.get(createdDate)!;
+          data.revenue += payment.amount || 0;
+          data.orders++;
+        }
+
+        // 统计今日数据
+        if (payment.created_at >= startOfDay) {
+          todayRevenue += payment.amount || 0;
+          todayOrders++;
+        }
+      }
+    });
+
+    // 转换为数组
+    const daily = Array.from(dailyMap.entries()).map(([date, data]) => ({
+      date: date.substring(5), // 只显示 MM-DD
+      revenue: Math.round(data.revenue * 100) / 100, // 保留两位小数
+      orders: data.orders,
+    }));
+
+    return {
+      success: true,
+      data: {
+        daily,
+        todayRevenue: Math.round(todayRevenue * 100) / 100,
+        todayOrders,
+      },
+    };
+  } catch (error: any) {
+    console.error("获取支付趋势失败:", error);
+    return {
+      success: false,
+      error: error.message || "获取支付趋势失败",
+    };
+  }
+}

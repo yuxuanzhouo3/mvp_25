@@ -36,7 +36,7 @@ interface AdminSidebarProps {
 const navItems = [
   {
     href: "/admin/dashboard",
-    label: "仪表板",
+    label: "数据统计",
     icon: LayoutDashboard,
   },
   {
