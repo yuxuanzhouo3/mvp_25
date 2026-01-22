@@ -54,8 +54,15 @@ export function getWechatPayConfig(): WechatPayConfig | null {
     return null;
   }
 
-  // 处理私钥格式：替换转义的换行符
-  let formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
+  // 处理私钥格式：
+  // 1. 去除首尾的引号（如果存在）
+  let formattedPrivateKey = privateKey.trim();
+  if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+    formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+  }
+
+  // 2. 替换转义的换行符
+  formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, "\n");
 
   // 如果私钥没有 PEM 头尾，则添加
   if (!formattedPrivateKey.includes("-----BEGIN")) {
