@@ -145,6 +145,12 @@ export async function getPaymentStats(): Promise<ApiResponse<{
         .reduce((sum, p) => sum + (p.amount || 0), 0),
     };
 
+    // 按币种统计（国际版 USD，国内版 CNY）
+    const totalRevenueByCurrency = {
+      USD: byMethod.stripe + byMethod.paypal,
+      CNY: byMethod.wechat + byMethod.alipay,
+    };
+
     return {
       success: true,
       data: {
@@ -152,7 +158,9 @@ export async function getPaymentStats(): Promise<ApiResponse<{
         thisMonth,
         today,
         totalRevenue,
+        totalRevenueByCurrency,
         byMethod,
+        lastUpdated: new Date().toISOString(),
       },
     };
   } catch (error: any) {
@@ -181,40 +189,60 @@ export async function getPaymentTrends(
     const db = await getDatabaseAdapter();
 
     const now = new Date();
-    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const startDate = new Date(now.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
     // 获取所有支付记录
     const allPayments = await db.listPayments({ limit: 10000 });
 
     // 按日期聚合数据
-    const dailyMap = new Map<string, { revenue: number; orders: number }>();
+    const dailyMap = new Map<string, { revenue: number; revenueUSD: number; revenueCNY: number; orders: number }>();
 
-    // 初始化每一天的数据
+    // 初始化每一天的数据（使用本地日期）
     for (let i = 0; i < days; i++) {
       const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
-      const dateStr = date.toISOString().split('T')[0];
-      dailyMap.set(dateStr, { revenue: 0, orders: 0 });
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      dailyMap.set(dateStr, { revenue: 0, revenueUSD: 0, revenueCNY: 0, orders: 0 });
     }
 
     let todayRevenue = 0;
     let todayOrders = 0;
 
+    // 统计今日收入按币种（用于 Dashboard 显示）
+    let todayRevenueUSD = 0;
+    let todayRevenueCNY = 0;
+
     // 统计每日收入和订单数
     allPayments.forEach(payment => {
       if (payment.status === "paid" && payment.created_at) {
-        const createdDate = new Date(payment.created_at).toISOString().split('T')[0];
+        // 使用本地日期而不是UTC日期
+        const createdDateLocal = new Date(payment.created_at);
+        const createdDate = `${createdDateLocal.getFullYear()}-${String(createdDateLocal.getMonth() + 1).padStart(2, '0')}-${String(createdDateLocal.getDate()).padStart(2, '0')}`;
 
         if (dailyMap.has(createdDate)) {
           const data = dailyMap.get(createdDate)!;
           data.revenue += payment.amount || 0;
           data.orders++;
+
+          // 按币种统计每日收入
+          if (payment.method === "stripe" || payment.method === "paypal") {
+            data.revenueUSD += payment.amount || 0;
+          } else if (payment.method === "wechat" || payment.method === "alipay") {
+            data.revenueCNY += payment.amount || 0;
+          }
         }
 
         // 统计今日数据
         if (payment.created_at >= startOfDay) {
           todayRevenue += payment.amount || 0;
           todayOrders++;
+
+          // 按币种统计今日收入
+          if (payment.method === "stripe" || payment.method === "paypal") {
+            todayRevenueUSD += payment.amount || 0;
+          } else if (payment.method === "wechat" || payment.method === "alipay") {
+            todayRevenueCNY += payment.amount || 0;
+          }
         }
       }
     });
@@ -222,7 +250,9 @@ export async function getPaymentTrends(
     // 转换为数组
     const daily = Array.from(dailyMap.entries()).map(([date, data]) => ({
       date: date.substring(5), // 只显示 MM-DD
-      revenue: Math.round(data.revenue * 100) / 100, // 保留两位小数
+      revenue: Math.round(data.revenue * 100) / 100, // 总收入，保留两位小数
+      revenueUSD: Math.round(data.revenueUSD * 100) / 100, // USD收入
+      revenueCNY: Math.round(data.revenueCNY * 100) / 100, // CNY收入
       orders: data.orders,
     }));
 
@@ -232,6 +262,11 @@ export async function getPaymentTrends(
         daily,
         todayRevenue: Math.round(todayRevenue * 100) / 100,
         todayOrders,
+        todayRevenueByCurrency: {
+          USD: Math.round(todayRevenueUSD * 100) / 100,
+          CNY: Math.round(todayRevenueCNY * 100) / 100,
+        },
+        lastUpdated: new Date().toISOString(),
       },
     };
   } catch (error: any) {

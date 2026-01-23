@@ -203,6 +203,10 @@ export async function getUserStats(): Promise<ApiResponse<{
     domestic: number;
     international: number;
   };
+  paidUsersByRegion: {
+    domestic: number;
+    international: number;
+  };
 }>> {
   try {
     const session = await requireAdminSession();
@@ -262,6 +266,18 @@ export async function getUserStats(): Promise<ApiResponse<{
 
     const international = allUsers.length - domestic;
 
+    // 按地区统计付费用户
+    const paidUsersByRegion = {
+      domestic: allUsers.filter(u =>
+        (!u.region || u.region === 'CN' || u.region === 'china') &&
+        (u.subscription_plan === 'yearly' || u.subscription_plan === 'monthly' || u.subscription_plan === 'enterprise')
+      ).length,
+      international: allUsers.filter(u =>
+        u.region && u.region !== 'CN' && u.region !== 'china' &&
+        (u.subscription_plan === 'yearly' || u.subscription_plan === 'monthly' || u.subscription_plan === 'enterprise')
+      ).length,
+    };
+
     return {
       success: true,
       data: {
@@ -280,6 +296,7 @@ export async function getUserStats(): Promise<ApiResponse<{
           domestic,
           international,
         },
+        paidUsersByRegion,
       },
     };
   } catch (error: any) {
@@ -308,25 +325,37 @@ export async function getUserTrends(
     const db = await getDatabaseAdapter();
 
     const now = new Date();
-    const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    const startDate = new Date(now.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
 
     // 获取所有用户
     const allUsers = await db.listUsers({ limit: 10000 });
 
     // 按日期聚合数据
-    const dailyMap = new Map<string, { newUsers: number; activeUsers: number }>();
+    const dailyMap = new Map<string, {
+      newUsers: number;
+      activeUsers: number;
+      activeUsersDomestic: number;
+      activeUsersInternational: number;
+    }>();
 
-    // 初始化每一天的数据
+    // 初始化每一天的数据（使用本地日期）
     for (let i = 0; i < days; i++) {
       const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
-      const dateStr = date.toISOString().split('T')[0];
-      dailyMap.set(dateStr, { newUsers: 0, activeUsers: 0 });
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      dailyMap.set(dateStr, {
+        newUsers: 0,
+        activeUsers: 0,
+        activeUsersDomestic: 0,
+        activeUsersInternational: 0
+      });
     }
 
     // 统计每日新增用户
     allUsers.forEach(user => {
       if (user.created_at) {
-        const createdDate = new Date(user.created_at).toISOString().split('T')[0];
+        // 使用本地日期而不是UTC日期
+        const createdDateLocal = new Date(user.created_at);
+        const createdDate = `${createdDateLocal.getFullYear()}-${String(createdDateLocal.getMonth() + 1).padStart(2, '0')}-${String(createdDateLocal.getDate()).padStart(2, '0')}`;
         if (dailyMap.has(createdDate)) {
           const data = dailyMap.get(createdDate)!;
           data.newUsers++;
@@ -334,13 +363,23 @@ export async function getUserTrends(
       }
     });
 
-    // 统计每日活跃用户
+    // 统计每日活跃用户（按区域）
     allUsers.forEach(user => {
       if (user.last_login_at) {
-        const lastLoginDate = new Date(user.last_login_at).toISOString().split('T')[0];
+        // 使用本地日期而不是UTC日期
+        const lastLoginDateLocal = new Date(user.last_login_at);
+        const lastLoginDate = `${lastLoginDateLocal.getFullYear()}-${String(lastLoginDateLocal.getMonth() + 1).padStart(2, '0')}-${String(lastLoginDateLocal.getDate()).padStart(2, '0')}`;
         if (dailyMap.has(lastLoginDate)) {
           const data = dailyMap.get(lastLoginDate)!;
           data.activeUsers++;
+
+          // 判断是否为国内用户
+          const isDomestic = !user.region || user.region === 'CN' || user.region === 'china';
+          if (isDomestic) {
+            data.activeUsersDomestic++;
+          } else {
+            data.activeUsersInternational++;
+          }
         }
       }
     });
