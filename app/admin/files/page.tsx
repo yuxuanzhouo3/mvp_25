@@ -7,6 +7,7 @@ import {
   renameStorageFile,
   renameCloudBaseFile,
   downloadStorageFile,
+  getCloudBaseFileUrl,
   type StorageFile,
 } from "@/actions/admin-ads";
 import {
@@ -89,6 +90,7 @@ export default function FilesManagementPage() {
 
   // 预览状态
   const [previewFile, setPreviewFile] = useState<StorageFile | null>(null);
+  const [actualPreviewUrl, setActualPreviewUrl] = useState<string>("");
 
   // 重命名状态
   const [renameFile, setRenameFile] = useState<StorageFile | null>(null);
@@ -141,6 +143,30 @@ export default function FilesManagementPage() {
   useEffect(() => {
     loadFiles();
   }, []);
+
+  // 当预览CloudBase文件时，实时获取新的临时URL
+  useEffect(() => {
+    if (!previewFile) {
+      setActualPreviewUrl("");
+      return;
+    }
+
+    // 如果是CloudBase文件且有fileId，获取新的临时URL
+    if (previewFile.source === "cloudbase" && previewFile.fileId && previewFile.fileId.startsWith("cloud://")) {
+      getCloudBaseFileUrl(previewFile.fileId).then((result) => {
+        if (result.success && result.data) {
+          setActualPreviewUrl(result.data.url);
+        } else {
+          // 如果获取失败，使用原始URL
+          setActualPreviewUrl(previewFile.url);
+          console.error("Failed to get CloudBase temp URL:", result.error);
+        }
+      });
+    } else {
+      // Supabase文件或没有fileId的CloudBase文件，直接使用原始URL
+      setActualPreviewUrl(previewFile.url);
+    }
+  }, [previewFile]);
 
   // 处理重命名
   async function handleRename() {
@@ -745,7 +771,7 @@ export default function FilesManagementPage() {
       )}
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">广告 (Supabase)</CardTitle>
@@ -815,7 +841,7 @@ export default function FilesManagementPage() {
 
       {/* 文件列表 */}
       <Tabs defaultValue="ads-supabase">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:grid-cols-6 gap-2">
           <TabsTrigger value="ads-supabase" className="gap-1 text-xs">
             <ImageIcon className="h-3 w-3" />
             广告 (S)
@@ -1001,13 +1027,13 @@ export default function FilesManagementPage() {
               <div className="rounded-lg overflow-hidden border bg-slate-50 dark:bg-slate-900 flex items-center justify-center min-h-[300px]">
                 {getFileType(previewFile.name) === "image" ? (
                   <img
-                    src={previewFile.url}
+                    src={actualPreviewUrl || previewFile.url}
                     alt={previewFile.name}
                     className="max-w-full max-h-[60vh] object-contain"
                   />
                 ) : getFileType(previewFile.name) === "video" ? (
                   <video
-                    src={previewFile.url}
+                    src={actualPreviewUrl || previewFile.url}
                     controls
                     autoPlay
                     className="max-w-full max-h-[60vh]"
@@ -1024,12 +1050,12 @@ export default function FilesManagementPage() {
               <div className="text-sm">
                 <span className="text-muted-foreground">文件地址：</span>
                 <a
-                  href={previewFile.url}
+                  href={actualPreviewUrl || previewFile.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline ml-1 break-all"
                 >
-                  {previewFile.url}
+                  {actualPreviewUrl || previewFile.url}
                 </a>
               </div>
             </div>
@@ -1051,7 +1077,7 @@ export default function FilesManagementPage() {
               )}
               下载文件
             </Button>
-            <Button onClick={() => window.open(previewFile?.url, "_blank")}>
+            <Button onClick={() => window.open(actualPreviewUrl || previewFile?.url, "_blank")}>
               <ExternalLink className="h-4 w-4 mr-2" />
               在新窗口打开
             </Button>

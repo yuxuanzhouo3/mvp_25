@@ -666,27 +666,41 @@ export async function listStorageFiles(): Promise<ListFilesResult> {
         const adMap: Map<string, { ad: any; fileName: string }> = new Map();
 
         for (const ad of data) {
-          if (ad.media_url) {
+          // 兼容多种字段名：media_url, file_url, fileUrl
+          const mediaUrl = ad.media_url || ad.file_url || ad.fileUrl;
+
+          if (mediaUrl) {
             let fileId: string | null = null;
             let fileName: string;
 
-            if (ad.media_url.startsWith("cloud://")) {
-              fileId = ad.media_url;
-              const pathParts = ad.media_url.split("/");
+            if (mediaUrl.startsWith("cloud://")) {
+              // 已经是 fileID 格式（新上传的文件）
+              fileId = mediaUrl;
+              // 从 fileID 提取文件名: cloud://env.xxx/ads/filename.ext
+              const pathParts = mediaUrl.split("/");
               fileName = pathParts[pathParts.length - 1] || ad._id;
-            } else {
-              const urlParts = ad.media_url.split("/");
+            } else if (mediaUrl.includes("tcb.qcloud.la") && mediaUrl.includes("/ads/")) {
+              // CloudBase 临时 URL 格式（旧上传的文件）
+              const urlParts = mediaUrl.split("/");
               fileName = urlParts[urlParts.length - 1]?.split("?")[0] || ad._id;
+
+              // 使用广告记录中的文件大小和创建时间
+              const fileSize = ad.file_size;
+              const lastModified = ad.created_at;
 
               cloudbaseFiles.push({
                 name: fileName,
-                url: ad.media_url,
-                size: ad.file_size,
-                lastModified: ad.created_at,
+                url: mediaUrl,
+                size: fileSize,
+                lastModified: lastModified,
                 source: "cloudbase",
                 fileId: undefined,
                 adId: ad._id || ad.id,
               });
+              continue;
+            } else {
+              // 外部URL（非CloudBase文件），跳过不显示
+              console.log("Skipping external URL:", mediaUrl);
               continue;
             }
 
@@ -709,7 +723,10 @@ export async function listStorageFiles(): Promise<ListFilesResult> {
                 if (mapEntry) {
                   const { ad, fileName } = mapEntry;
                   const isSuccess = fileInfo.code === "SUCCESS" && fileInfo.tempFileURL;
-                  const displayUrl = isSuccess ? fileInfo.tempFileURL : ad.media_url;
+                  // 使用兼容的字段名获取原始URL
+                  const originalUrl = ad.media_url || ad.file_url || ad.fileUrl;
+                  // 如果获取临时URL成功，使用临时URL；否则保存fileID用于后续获取
+                  const displayUrl = isSuccess ? fileInfo.tempFileURL : originalUrl;
 
                   cloudbaseFiles.push({
                     name: fileName,
@@ -727,9 +744,10 @@ export async function listStorageFiles(): Promise<ListFilesResult> {
             }
 
             for (const [fileId, { ad, fileName }] of adMap) {
+              const originalUrl = ad.media_url || ad.file_url || ad.fileUrl;
               cloudbaseFiles.push({
                 name: fileName,
-                url: ad.media_url,
+                url: originalUrl,
                 size: ad.file_size,
                 lastModified: ad.created_at,
                 source: "cloudbase",
@@ -740,9 +758,10 @@ export async function listStorageFiles(): Promise<ListFilesResult> {
           } catch (urlErr) {
             console.error("CloudBase getTempFileURL error:", urlErr);
             for (const [fileId, { ad, fileName }] of adMap) {
+              const originalUrl = ad.media_url || ad.file_url || ad.fileUrl;
               cloudbaseFiles.push({
                 name: fileName,
-                url: ad.media_url,
+                url: originalUrl,
                 size: ad.file_size,
                 lastModified: ad.created_at,
                 source: "cloudbase",
@@ -1084,6 +1103,51 @@ export async function downloadStorageFile(
     return {
       success: false,
       error: err instanceof Error ? err.message : "下载文件失败",
+    };
+  }
+}
+
+/**
+ * 获取 CloudBase 文件的临时访问 URL
+ * 实时生成新的临时URL，避免过期问题
+ */
+export async function getCloudBaseFileUrl(fileId: string): Promise<ApiResponse<{ url: string }>> {
+  try {
+    await requireAdminSession();
+
+    if (!fileId || !fileId.startsWith("cloud://")) {
+      return { success: false, error: "无效的fileID格式" };
+    }
+
+    const connector = new CloudBaseConnector();
+    await connector.initialize();
+    const app = connector.getApp();
+
+    const result = await app.getTempFileURL({
+      fileList: [fileId],
+    });
+
+    if (result.fileList && result.fileList.length > 0) {
+      const fileInfo = result.fileList[0];
+      if (fileInfo.code === "SUCCESS" && fileInfo.tempFileURL) {
+        return {
+          success: true,
+          data: { url: fileInfo.tempFileURL },
+        };
+      } else {
+        return {
+          success: false,
+          error: `获取临时URL失败: ${fileInfo.code || "未知错误"}`,
+        };
+      }
+    }
+
+    return { success: false, error: "未返回文件信息" };
+  } catch (err) {
+    console.error("Get CloudBase file URL error:", err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "获取文件URL失败",
     };
   }
 }
