@@ -1,0 +1,47 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e5]:
+        - button "返回" [ref=e6] [cursor=pointer]:
+          - img [ref=e7]
+          - text: 返回
+        - generic [ref=e9]: 智能备考系统
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e13]: "1"
+        - generic [ref=e16]: "2"
+        - generic [ref=e19]: "3"
+        - generic [ref=e22]: "4"
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - img [ref=e27]
+          - heading "设置你的考试目标" [level=2] [ref=e31]
+          - paragraph [ref=e32]: 告诉 AI 你要准备什么考试，我们会为你量身定制学习计划
+        - generic [ref=e34]:
+          - generic [ref=e35]: 考试名称
+          - textbox "例如：考研数学、大学英语四级..." [ref=e36]
+          - generic [ref=e37]:
+            - button "考研数学" [ref=e38] [cursor=pointer]
+            - button "考研英语" [ref=e39] [cursor=pointer]
+            - button "考研政治" [ref=e40] [cursor=pointer]
+            - button "大学英语四级" [ref=e41] [cursor=pointer]
+            - button "大学英语六级" [ref=e42] [cursor=pointer]
+            - button "计算机二级" [ref=e43] [cursor=pointer]
+        - generic [ref=e44]:
+          - button "智能引导出题" [ref=e45] [cursor=pointer]:
+            - img
+            - text: 智能引导出题
+          - button "下一步" [disabled]:
+            - text: 下一步
+            - img
+          - button "跳过，直接上传题库" [ref=e46] [cursor=pointer]:
+            - img
+            - text: 跳过，直接上传题库
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e52] [cursor=pointer]:
+    - img [ref=e53]
+  - alert [ref=e56]
+```

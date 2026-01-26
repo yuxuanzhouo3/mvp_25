@@ -25,9 +25,12 @@ import {
 import { EXAM_PRESETS } from "@/lib/exam-mock-data"
 import { parseFile, validateFile, MAX_FILE_SIZE } from "@/lib/file-parser"
 import { useT } from "@/lib/i18n"
+import { AiRequirementAgent } from "@/components/exam/AiRequirementAgent"
+import { Requirement } from "@/lib/requirement-parser"
 
 type Step = 'goal' | 'source' | 'config' | 'processing' | 'ready'
 type SourceType = 'upload' | 'search' | null
+type Mode = 'traditional' | 'ai-guide'
 
 // 联网搜索结果类型
 interface SyllabusData {
@@ -82,6 +85,7 @@ function ExamSetupContent() {
   const [sourceType, setSourceType] = useState<SourceType>(getInitialSourceType())
   const [processingProgress, setProcessingProgress] = useState(0)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [mode, setMode] = useState<Mode>('traditional')
 
   // 出题数量和文件错误状态
   const [questionCount, setQuestionCount] = useState(5)
@@ -536,6 +540,166 @@ function ExamSetupContent() {
     router.push('/exam/practice')
   }
 
+  // 处理 AI 引导模式的开始出题
+  const handleAiStartGeneration = async (requirements: Requirement[]) => {
+    try {
+      console.log('=== 开始出题 DEBUG ===')
+      console.log('1. Requirements:', requirements)
+      console.log('2. Requirements JSON:', JSON.stringify(requirements, null, 2))
+
+      requirements.forEach((req, index) => {
+        console.log(`3. Requirement[${index}]:`, 'category=', req.category, 'value=', req.value)
+      })
+
+      // 将需求转换为考试名称和参数
+      let subjectReq = requirements.find(r => r.category === '科目')
+      console.log('4. 找到的科目要求:', subjectReq)
+
+      // Fallback: try to extract subject from requirement values
+      if (!subjectReq) {
+        console.log('5. 科目未找到，尝试fallback逻辑')
+        const subjectKeywords = ['英语', '数学', '语文', '物理', '化学', '生物', '历史', '地理', '政治']
+        const possibleSubject = requirements.find(r =>
+          subjectKeywords.some(keyword => r.value.includes(keyword))
+        )
+        console.log('6. Fallback找到的科目:', possibleSubject)
+
+        if (possibleSubject) {
+          // Extract the subject keyword from the value
+          const subject = subjectKeywords.find(keyword => possibleSubject.value.includes(keyword))
+          subjectReq = { category: '科目', value: subject || possibleSubject.value }
+          console.log('7. 提取的科目:', subjectReq)
+        }
+      }
+
+      if (!subjectReq) {
+        console.error('8. ❌ 缺少科目要求，当前requirements:', requirements)
+        alert('请先选择科目（如：英语、数学等）')
+        return
+      }
+
+      console.log('9. ✅ 科目验证通过，继续执行')
+      const examNameFromReq = subjectReq.value
+      const countReq = requirements.find(r => r.category === '数量')
+      const count = countReq ? parseInt(countReq.value) : 5
+
+      console.log('10. examName:', examNameFromReq, 'count:', count)
+
+      setExamName(examNameFromReq)
+      setQuestionCount(count)
+      setSourceType('search')
+      console.log('11. 切换到传统模式并设置 step=processing')
+      setMode('traditional')
+      setStep('processing')
+
+      console.log('12. 调用 performWebSearchWithRequirements')
+      // 调用搜索和生成题目
+      await performWebSearchWithRequirements(examNameFromReq, count, requirements)
+      console.log('13. ✅ 完成')
+    } catch (error) {
+      console.error('❌ handleAiStartGeneration 错误:', error)
+      alert(`出题失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    }
+  }
+
+  // 带需求参数的联网搜索
+  const performWebSearchWithRequirements = async (name: string, count: number, requirements: Requirement[]) => {
+    setIsSearching(true)
+    setSearchError(null)
+    setProcessingProgress(0)
+    setProcessingSteps([])
+
+    localStorage.removeItem('generatedQuestions')
+    localStorage.removeItem('generatedExamName')
+
+    const examType = getExamType(name)
+
+    try {
+      setProcessingSteps([`🌐 正在联网搜索「${name}」考试大纲...`])
+      setProcessingProgress(5)
+
+      const searchResponse = await fetch('/api/exam/search-syllabus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          examType,
+          examName: name,
+          requirements: requirements.map(r => `${r.category}=${r.value}`).join(', ')
+        })
+      })
+
+      setProcessingProgress(30)
+
+      let syllabusInfo = null
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json()
+        syllabusInfo = searchData.data
+        setSyllabusData(syllabusInfo)
+        localStorage.setItem('examSyllabus', JSON.stringify(syllabusInfo))
+      }
+
+      setProcessingProgress(40)
+      setProcessingSteps(prev => [...prev, `🤖 AI 正在生成 ${count} 道精选题目...`])
+
+      const generateResponse = await fetch('/api/exam/generate-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          examType,
+          examName: name,
+          syllabus: syllabusInfo?.syllabus || null,
+          count,
+          requirements: requirements.map(r => `${r.category}=${r.value}`).join(', ')
+        })
+      })
+
+      setProcessingProgress(70)
+
+      if (!generateResponse.ok) {
+        throw new Error('AI 生成题目失败')
+      }
+
+      const generateData = await generateResponse.json()
+
+      if (!generateData.questions || generateData.questions.length === 0) {
+        throw new Error('AI 返回的题目为空')
+      }
+
+      const formattedQuestions = generateData.questions.map((q: any) => ({
+        id: q.id,
+        type: (q.type as 'single' | 'multiple' | 'fill') || 'single',
+        content: q.content || q.question || '题目加载失败',
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        difficulty: Math.min(5, Math.max(1, q.difficulty)) as 1 | 2 | 3 | 4 | 5,
+        knowledgePoint: q.knowledgePoint,
+        category: q.category,
+        blanksCount: q.blanksCount
+      }))
+
+      localStorage.setItem('generatedQuestions', JSON.stringify(formattedQuestions))
+      localStorage.setItem('generatedExamName', name)
+
+      setProcessingSteps(prev => [...prev, `🎉 题库生成完成！共 ${formattedQuestions.length} 道精选题目`])
+      setProcessingProgress(100)
+
+      await new Promise(resolve => setTimeout(resolve, 500))
+      setStep('ready')
+
+    } catch (error) {
+      console.error('联网搜索出题失败:', error)
+      setSearchError(error instanceof Error ? error.message : '联网搜索出题失败，请稍后重试')
+      setProcessingSteps(prev => [...prev, '⚠️ 出题失败，请重试'])
+      setProcessingProgress(100)
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      setMode('traditional')
+      setStep('source')
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Header */}
@@ -557,9 +721,28 @@ function ExamSetupContent() {
         </div>
       </header>
 
-      {/* Progress Steps */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-center gap-4 mb-8">
+      {/* AI 引导模式 */}
+      {mode === 'ai-guide' ? (
+        <div className="container mx-auto px-4 py-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-4">
+              <Button
+                variant="outline"
+                onClick={() => setMode('traditional')}
+                className="border-neutral-200 dark:border-neutral-700"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                返回传统模式
+              </Button>
+            </div>
+            <AiRequirementAgent onStartGeneration={handleAiStartGeneration} />
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Progress Steps */}
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex items-center justify-center gap-4 mb-8">
           {['goal', 'source', 'processing', 'ready'].map((s, i) => (
             <div key={s} className="flex items-center">
               <div
@@ -634,6 +817,14 @@ function ExamSetupContent() {
               </div>
 
               <div className="space-y-3 mt-8">
+                <Button
+                  onClick={() => setMode('ai-guide')}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  智能引导出题
+                </Button>
+
                 <Button
                   onClick={handleNext}
                   disabled={!examName}
@@ -1077,6 +1268,8 @@ function ExamSetupContent() {
           )}
         </div>
       </div>
+      </>
+      )}
     </div>
   )
 }

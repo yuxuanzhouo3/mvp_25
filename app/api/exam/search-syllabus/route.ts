@@ -11,7 +11,7 @@ const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/cha
 
 export async function POST(request: NextRequest) {
   try {
-    const { examType, examName } = await request.json();
+    const { examType, examName, requirements } = await request.json();
 
     if (!examType || !examName) {
       return NextResponse.json(
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 构建搜索提示词
-    const searchPrompt = buildSearchPrompt(examType, examName);
+    const searchPrompt = buildSearchPrompt(examType, examName, requirements);
 
     // 调用通义千问 API，启用联网搜索
     const response = await fetch(DASHSCOPE_API_URL, {
@@ -134,49 +134,51 @@ export async function POST(request: NextRequest) {
 /**
  * 构建搜索提示词
  */
-function buildSearchPrompt(examType: string, examName: string): string {
+function buildSearchPrompt(examType: string, examName: string, requirements?: string): string {
+  const requirementsText = requirements ? `\n\n用户特定需求：${requirements}` : '';
+
   const examPrompts: Record<string, string> = {
     'postgraduate': `请联网搜索 ${examName} 考研的最新考试大纲和信息，包括：
 1. 2025年最新考试大纲和变化
 2. 各科目分值分布和题型
 3. 重点章节和知识点
 4. 历年真题考查重点
-5. 备考建议和时间规划`,
+5. 备考建议和时间规划${requirementsText}`,
 
     'cet4': `请联网搜索 大学英语四级(CET-4) 的最新考试信息，包括：
 1. 最新考试大纲和题型改革
 2. 各部分分值和时间分配
 3. 听力、阅读、写作、翻译的考查重点
 4. 词汇量要求和高频词汇
-5. 提分技巧和备考策略`,
+5. 提分技巧和备考策略${requirementsText}`,
 
     'cet6': `请联网搜索 大学英语六级(CET-6) 的最新考试信息，包括：
 1. 最新考试大纲
 2. 与四级的难度差异
 3. 各题型的评分标准
 4. 高频考点和词汇
-5. 高分备考策略`,
+5. 高分备考策略${requirementsText}`,
 
     'civilService': `请联网搜索 ${examName} 公务员考试的最新信息，包括：
 1. 行测和申论的最新大纲
 2. 各模块题量和分值
 3. 考试时间和形式
 4. 近年考查热点
-5. 备考资料推荐`,
+5. 备考资料推荐${requirementsText}`,
 
     'professional': `请联网搜索 ${examName} 职业资格考试的最新信息，包括：
 1. 最新考试大纲
 2. 考试科目和题型
 3. 报考条件和时间
 4. 通过率和难度分析
-5. 备考建议`,
+5. 备考建议${requirementsText}`,
 
     'default': `请联网搜索 ${examName} 考试的最新信息，包括：
 1. 考试大纲和范围
 2. 题型分布和分值
 3. 重点知识点
 4. 备考建议
-5. 相关学习资源`
+5. 相关学习资源${requirementsText}`
   };
 
   return examPrompts[examType] || examPrompts['default'];

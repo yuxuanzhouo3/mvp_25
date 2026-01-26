@@ -22,7 +22,7 @@ interface GeneratedQuestion {
 
 export async function POST(request: NextRequest) {
   try {
-    const { examType, examName, syllabus, count = 20 } = await request.json();
+    const { examType, examName, syllabus, count = 20, requirements } = await request.json();
 
     if (!examName) {
       return NextResponse.json(
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 构建出题提示词
-    const prompt = buildQuestionPrompt(examType, examName, syllabus, count);
+    const prompt = buildQuestionPrompt(examType, examName, syllabus, count, requirements);
 
     // 调用通义千问 API 生成题目
     const response = await fetch(DASHSCOPE_API_URL, {
@@ -161,10 +161,16 @@ function buildQuestionPrompt(
   examType: string,
   examName: string,
   syllabus: Array<{ chapter: string; keyPoints?: string[] }> | null,
-  count: number
+  count: number,
+  requirements?: string
 ): string {
   // 基础提示
   let prompt = `请为【${examName}】考试生成 ${count} 道高质量选择题。\n\n`;
+
+  // 添加用户需求
+  if (requirements) {
+    prompt += `用户特定需求：${requirements}\n\n`;
+  }
 
   // 根据考试类型添加特定要求
   const examRequirements: Record<string, string> = {

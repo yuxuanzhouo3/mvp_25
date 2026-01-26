@@ -169,9 +169,8 @@ export function SubscriptionCard() {
             {t.subscription.upgradeToPro}
           </Button>
         ) : (
-          <Button variant="outline" onClick={handleRenew} className="w-full cursor-pointer">
-            {t.subscription.renewSubscription}
-          </Button>
+  
+  
         )}
 
         <Separator />
