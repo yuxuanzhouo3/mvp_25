@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "set NODE_OPTIONS=--openssl-legacy-provider && next dev",
     "lint": "next lint",
-    "start": "next start",
+    "start": "NODE_OPTIONS='--openssl-legacy-provider' next start",
     "create-admin": "tsx scripts/create-admin.ts",
     "init-admin-db": "node scripts/init-admin-cloudbase.js",
     "test": "playwright test",
