@@ -137,6 +137,10 @@ function PaymentSuccessContent() {
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem("auth_user", JSON.stringify(data.user));
+            // 延迟后重新加载页面以更新 AuthProvider 状态
+            setTimeout(() => {
+              window.location.href = "/";
+            }, 3000);
           }
         } catch (error) {
           console.error("Failed to refresh user status:", error);
@@ -206,7 +210,10 @@ function PaymentSuccessContent() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button variant="outline" className="w-full" onClick={() => router.push("/payment/intl")}>
+          <Button variant="outline" className="w-full" onClick={() => {
+            const region = process.env.NEXT_PUBLIC_DEPLOYMENT_REGION || "CN";
+            router.push(region === "CN" ? "/payment" : "/payment/intl");
+          }}>
             {t.payment.tryAgain}
           </Button>
           <Button variant="outline" className="w-full" onClick={handleGoHome}>

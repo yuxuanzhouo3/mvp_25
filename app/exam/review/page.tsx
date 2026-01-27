@@ -19,21 +19,36 @@ export default function ReviewPage() {
   const isLoaded = useRef(false)
   const isUserAction = useRef(false)
 
-  // 从 localStorage 加载
+  // 从 API 加载错题
   useEffect(() => {
-    const savedWrongQuestions = localStorage.getItem('examWrongQuestions')
-    const savedExam = localStorage.getItem('currentExam')
-
-    if (savedWrongQuestions) {
+    async function loadWrongQuestions() {
       try {
-        const parsed = JSON.parse(savedWrongQuestions)
-        console.log('Review page loaded wrongQuestions:', parsed.length, 'items')
-        setWrongQuestions(parsed)
-      } catch (e) {
-        console.error('Failed to parse wrong questions')
+        const { fetchWrongQuestions } = await import('@/lib/services/wrong-questions')
+        const data = await fetchWrongQuestions()
+
+        console.log('Review page loaded wrongQuestions from API:', data.length, 'items')
+        setWrongQuestions(data)
+
+        // 同时更新 localStorage 作为缓存
+        localStorage.setItem('examWrongQuestions', JSON.stringify(data))
+      } catch (error) {
+        console.error('Failed to load wrong questions from API:', error)
+
+        // 如果 API 失败，尝试从 localStorage 加载
+        const savedWrongQuestions = localStorage.getItem('examWrongQuestions')
+        if (savedWrongQuestions) {
+          try {
+            const parsed = JSON.parse(savedWrongQuestions)
+            console.log('Fallback to localStorage:', parsed.length, 'items')
+            setWrongQuestions(parsed)
+          } catch (e) {
+            console.error('Failed to parse wrong questions from localStorage')
+          }
+        }
       }
     }
 
+    const savedExam = localStorage.getItem('currentExam')
     if (savedExam) {
       try {
         const exam = JSON.parse(savedExam)
@@ -43,7 +58,9 @@ export default function ReviewPage() {
       }
     }
 
-    // 标记加载完成，延迟设置以确保状态更新完成
+    loadWrongQuestions()
+
+    // 标记加载完成
     setTimeout(() => {
       isLoaded.current = true
     }, 100)

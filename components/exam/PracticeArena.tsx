@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, BookMarked, Pause, Play, AlertTriangle, Loader2, RefreshCw, AlertCircle } from "lucide-react"
+import { toast } from "sonner"
 import { RankPanel } from "./RankPanel"
 import { QuestionCard } from "./QuestionCard"
 import { AnswerFeedback } from "./AnswerFeedback"
@@ -451,41 +452,59 @@ export function PracticeArena({ examName = "考研数学" }: PracticeArenaProps)
   }, [currentQuestion, answerRecords, checkAnswer])
 
   // 添加到错题本
-  const handleAddToWrongBook = useCallback(() => {
+  const handleAddToWrongBook = useCallback(async () => {
     if (!lastAnswer || lastAnswer.isCorrect) return
 
-    setWrongQuestions(prev => {
-      const existing = prev.find(w => w.questionId === currentQuestion.id)
-      let newWrongQuestions: WrongQuestion[]
+    try {
+      // 调用 API 保存到数据库
+      const { saveWrongQuestion } = await import('@/lib/services/wrong-questions')
+      const success = await saveWrongQuestion({
+        questionId: currentQuestion.id,
+        question: currentQuestion,
+        userAnswer: lastAnswer.userAnswer
+      })
 
-      if (existing) {
-        newWrongQuestions = prev.map(w =>
-          w.questionId === currentQuestion.id
-            ? {
-                ...w,
-                wrongCount: w.wrongCount + 1,
-                lastWrongAt: new Date(),
-                userAnswers: [...w.userAnswers, lastAnswer.userAnswer]
-              }
-            : w
-        )
+      if (success) {
+        // 同时更新本地状态和 localStorage（作为缓存）
+        setWrongQuestions(prev => {
+          const existing = prev.find(w => w.questionId === currentQuestion.id)
+          let newWrongQuestions: WrongQuestion[]
+
+          if (existing) {
+            newWrongQuestions = prev.map(w =>
+              w.questionId === currentQuestion.id
+                ? {
+                    ...w,
+                    wrongCount: w.wrongCount + 1,
+                    lastWrongAt: new Date(),
+                    userAnswers: [...w.userAnswers, lastAnswer.userAnswer]
+                  }
+                : w
+            )
+          } else {
+            newWrongQuestions = [...prev, {
+              questionId: currentQuestion.id,
+              question: currentQuestion,
+              wrongCount: 1,
+              lastWrongAt: new Date(),
+              mastered: false,
+              userAnswers: [lastAnswer.userAnswer]
+            }]
+          }
+
+          saveToStorage('examWrongQuestions', newWrongQuestions)
+          console.log('Added to wrong book, total:', newWrongQuestions.length)
+          return newWrongQuestions
+        })
+
+        toast.success('已加入错题本')
       } else {
-        newWrongQuestions = [...prev, {
-          questionId: currentQuestion.id,
-          question: currentQuestion,
-          wrongCount: 1,
-          lastWrongAt: new Date(),
-          mastered: false,
-          userAnswers: [lastAnswer.userAnswer]
-        }]
+        toast.error('保存错题失败，请重试')
       }
-
-      // 立即同步保存到 localStorage，确保数据不会丢失
-      saveToStorage('examWrongQuestions', newWrongQuestions)
-      console.log('Added to wrong book, total:', newWrongQuestions.length)
-
-      return newWrongQuestions
-    })
+    } catch (error) {
+      console.error('保存错题失败:', error)
+      toast.error('保存错题失败，请重试')
+    }
   }, [currentQuestion, lastAnswer])
 
   // 下一题

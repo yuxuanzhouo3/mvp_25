@@ -101,6 +101,33 @@ export interface RefreshTokenRecord {
 }
 
 /**
+ * wrong_questions 集合 - 错题本
+ */
+export interface WrongQuestion {
+  _id?: string;
+  user_id: string;
+  questionId: string;
+  question: {
+    id: string;
+    type?: "single" | "multiple" | "fill";
+    content: string;
+    options?: string[];
+    correctAnswer: number | number[] | string[];
+    explanation: string;
+    difficulty: 1 | 2 | 3 | 4 | 5;
+    knowledgePoint: string;
+    category?: string;
+    blanksCount?: number;
+  };
+  wrongCount: number;
+  lastWrongAt: string;
+  mastered: boolean;
+  userAnswers: (number | number[] | string[])[];
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * CloudBase 集合列表
  */
 export const CLOUDBASE_COLLECTIONS = {
@@ -110,4 +137,5 @@ export const CLOUDBASE_COLLECTIONS = {
   REFRESH_TOKENS: "refresh_tokens",
   ASSESSMENTS: "assessments",
   CHAT_HISTORY: "chat_history",
+  WRONG_QUESTIONS: "wrong_questions",
 } as const;
