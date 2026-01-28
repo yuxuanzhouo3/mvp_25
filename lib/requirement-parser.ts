@@ -117,3 +117,40 @@ export function hasSubject(requirements: Requirement[]): boolean {
 export function hasQuestionCount(requirements: Requirement[]): boolean {
   return requirements.some(r => r.category === '数量')
 }
+
+export function detectUserConfirmIntent(message: string): boolean {
+  // 检测用户确认意图的关键词
+  const confirmKeywords = ['可以', '好的', '行', '行呀', '好的呢', '没问题', '嗯', '对', '是的', '就按你说的']
+
+  // 先检查否定词，避免误判
+  const negativePatterns = ['不行', '不可以', '不好', '不要', '不对']
+  const hasNegative = negativePatterns.some(pattern => message.includes(pattern))
+
+  if (hasNegative) return false
+
+  return confirmKeywords.some(keyword => message.includes(keyword))
+}
+
+export function extractAiSuggestedRequirements(aiMessage: string): Requirement[] {
+  // 从AI消息中提取建议的参数（用于用户确认时提取）
+  const suggestions: Requirement[] = []
+
+  // 提取AI建议的题型
+  if (/选择题/.test(aiMessage)) suggestions.push({ category: '题型', value: '选择题' })
+  if (/填空题/.test(aiMessage)) suggestions.push({ category: '题型', value: '填空题' })
+  if (/判断题/.test(aiMessage)) suggestions.push({ category: '题型', value: '判断题' })
+  if (/简答题/.test(aiMessage)) suggestions.push({ category: '题型', value: '简答题' })
+  if (/计算题/.test(aiMessage)) suggestions.push({ category: '题型', value: '计算题' })
+  if (/案例分析题/.test(aiMessage)) suggestions.push({ category: '题型', value: '案例分析题' })
+
+  // 提取AI建议的难度
+  if (/困难/.test(aiMessage)) suggestions.push({ category: '难度', value: '困难' })
+  else if (/中等/.test(aiMessage)) suggestions.push({ category: '难度', value: '中等' })
+  else if (/简单/.test(aiMessage)) suggestions.push({ category: '难度', value: '简单' })
+
+  // 提取AI建议的数量
+  const countMatch = aiMessage.match(/(\d+)\s*[道题个]/)
+  if (countMatch) suggestions.push({ category: '数量', value: `${countMatch[1]}道` })
+
+  return suggestions
+}

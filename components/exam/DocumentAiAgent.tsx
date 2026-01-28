@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User } from 'lucide-react'
-import { Requirement, extractRequirementsFromUserMessage, mergeRequirements, hasQuestionCount, parseRequirements } from '@/lib/requirement-parser'
+import { Requirement, extractRequirementsFromUserMessage, mergeRequirements, hasQuestionCount, parseRequirements, detectUserConfirmIntent, extractAiSuggestedRequirements } from '@/lib/requirement-parser'
 import { RequirementTags } from './RequirementTags'
 import { QuickActionChips } from './QuickActionChips'
 
@@ -99,9 +99,19 @@ export function DocumentAiAgent({ documentContent, documentName, onStartGenerati
     setInput('')
     setIsStreaming(true)
 
-    // 【关键修改】只在用户明确表达需求时才提取标签
-    // 不再从AI的建议中自动提取，必须是用户自己说出来的需求
-    const newRequirements = extractRequirementsFromUserMessage(message, undefined)
+    // 【混合模式】提取用户明确表达的需求
+    let newRequirements = extractRequirementsFromUserMessage(message, undefined)
+
+    // 【混合模式】如果用户确认，且上一次AI有建议，则提取AI的建议
+    const lastAiMessage = messages.length > 0 && messages[messages.length - 1].role === 'assistant'
+      ? messages[messages.length - 1].content
+      : ''
+
+    if (detectUserConfirmIntent(message) && lastAiMessage) {
+      const aiSuggestions = extractAiSuggestedRequirements(lastAiMessage)
+      newRequirements = [...newRequirements, ...aiSuggestions]
+    }
+
     if (newRequirements.length > 0) {
       setRequirements(prev => mergeRequirements(prev, newRequirements))
     }
