@@ -92,13 +92,27 @@ export function mergeRequirements(
   updates.forEach(update => {
     const index = merged.findIndex(r => r.category === update.category)
     if (index >= 0) {
+      // 【新增】同类别替换（如题型从"选择题"改为"简答题"）
       merged[index] = update
     } else {
+      // 新类别添加
       merged.push(update)
     }
   })
 
-  return merged
+  // 【新增】去重：如果同一个类别有重复值，只保留最新的
+  const seen = new Set<string>()
+  const result: Requirement[] = []
+
+  for (let i = merged.length - 1; i >= 0; i--) {
+    const key = `${merged[i].category}:${merged[i].value}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      result.unshift(merged[i])
+    }
+  }
+
+  return result
 }
 
 export function hasSubject(requirements: Requirement[]): boolean {
