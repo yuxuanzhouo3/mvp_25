@@ -50,6 +50,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# 🔥 重要：复制 Server Actions 所需的 server 目录
+COPY --from=builder --chown=nextjs:nodejs /app/.next/server ./.next/server
+
 USER nextjs
 
 # 暴露端口，云托管通常默认 3000

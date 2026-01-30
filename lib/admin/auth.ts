@@ -56,18 +56,52 @@ export async function adminLogin(
   }
 
   try {
-    // 只查询 Supabase（单数据库架构，与模板项目一致）
-    const { getSupabaseAdmin } = await import("@/lib/integrations/supabase-admin");
-    const supabase = getSupabaseAdmin();
+    let admin: any = null;
+    let supabase: any = null;
 
-    const { data: admin, error } = await supabase
-      .from("admin_users")
-      .select("id, username, password_hash, role, status")
-      .eq("username", username)
-      .maybeSingle();
+    // 尝试从 Supabase 查询
+    try {
+      const { getSupabaseAdmin } = await import("@/lib/integrations/supabase-admin");
+      supabase = getSupabaseAdmin();
 
-    if (error || !admin) {
-      console.error("[adminLogin] Supabase query failed:", error);
+      const { data, error } = await supabase
+        .from("admin_users")
+        .select("id, username, password_hash, role, status")
+        .eq("username", username)
+        .maybeSingle();
+
+      if (!error && data) {
+        admin = data;
+      } else {
+        console.warn("[adminLogin] Supabase query failed, trying CloudBase:", error);
+      }
+    } catch (supabaseError) {
+      console.warn("[adminLogin] Supabase connection failed, trying CloudBase:", supabaseError);
+    }
+
+    // 如果 Supabase 失败，尝试从 CloudBase 查询
+    if (!admin) {
+      try {
+        const { getCloudBaseDatabase } = await import("@/lib/cloudbase/init");
+        const db = getCloudBaseDatabase();
+        const result = await db.collection("admin_users").where({ username }).get();
+
+        if (result.data && result.data.length > 0) {
+          admin = {
+            id: result.data[0]._id,
+            username: result.data[0].username,
+            password_hash: result.data[0].password_hash,
+            role: result.data[0].role || "admin",
+            status: result.data[0].status || "active",
+          };
+          console.log("[adminLogin] Using CloudBase data");
+        }
+      } catch (cloudbaseError) {
+        console.error("[adminLogin] CloudBase query failed:", cloudbaseError);
+      }
+    }
+
+    if (!admin) {
       await logFailedLoginAttempt(username, "user_not_found", ipAddress, userAgent);
       return {
         success: false,
