@@ -32,9 +32,9 @@ export const zhCN = {
   // 认证相关
   auth: {
     welcomeBack: "欢迎回来",
-    loginToAccount: "登录您的 SkillMap 账户",
+    loginToAccount: "登录您的晨佑AI教学账户",
     createAccount: "创建账户",
-    registerDescription: "注册 SkillMap 开始学习之旅",
+    registerDescription: "注册晨佑AI教学开始学习之旅",
     email: "邮箱地址",
     emailPlaceholder: "you@example.com",
     password: "密码",
@@ -115,7 +115,7 @@ export const zhCN = {
 
   // 首页
   home: {
-    title: "SkillMap - 智能学习平台",
+    title: "晨佑AI教学 - 智能学习平台",
     subtitle: "AI 驱动的个性化学习体验",
     startLearning: "开始学习",
     viewProfile: "查看个人中心",
@@ -569,7 +569,7 @@ export const zhCN = {
 
   // 升级弹窗
   upgrade: {
-    title: "升级到 SkillMap Premium",
+    title: "升级到晨佑AI教学 Premium",
     subtitle: "解锁AI驱动的个性化学习体验",
     freePlan: "免费版",
     premiumPlan: "Premium版",

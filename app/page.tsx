@@ -157,7 +157,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             {/* Logo - always visible */}
             <div className="text-2xl font-bold text-neutral-950 dark:text-white">
-              SkillMap
+              晨佑AI教学
             </div>
 
             {/* Desktop Navigation */}
