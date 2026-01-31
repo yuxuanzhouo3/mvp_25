@@ -563,7 +563,36 @@ export const enUS: Translations = {
     subscription: "Subscription",
     payments: "Payment History",
     settings: "Settings",
+    help: "Help",
     logout: "Log Out",
+  },
+
+  // Support page
+  support: {
+    title: "Technical Support",
+    subtitle: "Official Support Page",
+    contactTitle: "Contact Us",
+    contactDescription: "If you have any questions or need help, please contact us via email:",
+    email: "mornscience@gmail.com",
+    faqTitle: "Frequently Asked Questions",
+    faq: [
+      {
+        question: "How to reset password?",
+        answer: "Click the 'Forgot Password' link on the login page, enter your email address, and we will send you a password reset link."
+      },
+      {
+        question: "How to switch AI models?",
+        answer: "At the top of the chat interface, click the model selector to switch between different AI models. Each model has different features and capabilities."
+      },
+      {
+        question: "How to delete chat history?",
+        answer: "In the chat list, long press or right-click on the conversation you want to delete, then select the 'Delete' option."
+      },
+      {
+        question: "What if the app cannot connect to the network?",
+        answer: "Please check if your network connection is working properly and ensure the app has network access permissions. If the problem persists, try restarting the app."
+      }
+    ]
   },
 
   // Upgrade Modal

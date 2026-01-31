@@ -564,7 +564,36 @@ export const zhCN = {
     subscription: "订阅管理",
     payments: "支付记录",
     settings: "账户设置",
+    help: "帮助",
     logout: "退出登录",
+  },
+
+  // 支持页面
+  support: {
+    title: "技术支持",
+    subtitle: "官方支持页面",
+    contactTitle: "联系我们",
+    contactDescription: "如果您有任何问题或需要帮助，请通过以下邮箱联系我们：",
+    email: "mornscience@gmail.com",
+    faqTitle: "常见问题",
+    faq: [
+      {
+        question: "如何重置密码？",
+        answer: "点击登录页面的\"忘记密码\"链接，输入您的邮箱地址，我们会发送重置密码的链接到您的邮箱。"
+      },
+      {
+        question: "如何切换 AI 模型？",
+        answer: "在聊天界面顶部，点击模型选择器即可切换不同的 AI 模型。不同模型有不同的特点和能力。"
+      },
+      {
+        question: "如何删除聊天记录？",
+        answer: "在聊天列表中，长按或右键点击要删除的对话，选择\"删除\"选项即可。"
+      },
+      {
+        question: "应用无法联网怎么办？",
+        answer: "请检查您的网络连接是否正常，确保已授予应用网络访问权限。如果问题仍然存在，请尝试重启应用。"
+      }
+    ]
   },
 
   // 升级弹窗

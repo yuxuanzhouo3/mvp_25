@@ -9,6 +9,7 @@ import {
   CreditCard,
   Receipt,
   Settings,
+  HelpCircle,
   LogOut,
   Menu,
   ChevronLeft,
@@ -53,6 +54,11 @@ export function SidebarNavigation({ className }: SidebarNavigationProps) {
       title: t.profile.settings,
       icon: Settings,
       href: "/profile/settings",
+    },
+    {
+      title: t.userMenu.help,
+      icon: HelpCircle,
+      href: "/profile/help",
     },
   ]
 
