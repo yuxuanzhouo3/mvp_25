@@ -206,13 +206,12 @@ function PaymentSuccessContent() {
         const supabase = getSupabaseClient();
         await supabase.auth.refreshSession();
         await supabase.auth.getUser();
-        // 等待更长时间确保 UserProviderIntl 完成状态更新
-        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
         console.error("Failed to refresh session before navigation:", error);
       }
     }
-    router.push("/dashboard");
+    // 使用完整页面刷新而不是客户端路由跳转,确保 UserProviderIntl 重新初始化
+    window.location.href = "/dashboard";
   };
 
   const handleStartUsing = () => {
