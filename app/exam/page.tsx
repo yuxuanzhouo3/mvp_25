@@ -1133,12 +1133,12 @@ function ExamSetupContent() {
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={handleAiClarify}
+                  onClick={sourceType === 'search' ? () => setStep('goal') : handleAiClarify}
                   disabled={!sourceType || (sourceType === 'upload' && !uploadedFile)}
                   className="flex-1 border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  AI明确需求
+                  {sourceType === 'search' ? '上一步' : 'AI明确需求'}
                 </Button>
                 <div className="flex-1">
                   <Button
