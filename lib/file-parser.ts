@@ -15,13 +15,8 @@ if (typeof window !== 'undefined') {
   })
 }
 
-// 动态导入 mammoth
-let mammoth: typeof import('mammoth') | null = null
-if (typeof window !== 'undefined') {
-  import('mammoth').then((module) => {
-    mammoth = module.default || module
-  })
-}
+// 动态导入 mammoth - 移除顶层导入，改为在使用时加载
+let mammoth: any = null
 
 // 文件大小限制 (10MB)
 export const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -142,12 +137,33 @@ async function parseWord(file: File): Promise<ParseResult> {
   try {
     // 确保 mammoth 已加载
     if (!mammoth) {
+      console.log('正在加载 mammoth 库...')
       const module = await import('mammoth')
-      mammoth = module.default || module
+      console.log('Mammoth 模块加载成功:', module)
+
+      // 尝试不同的模块导出方式
+      if (module.default && typeof module.default.extractRawText === 'function') {
+        mammoth = module.default
+        console.log('使用 module.default')
+      } else if (typeof module.extractRawText === 'function') {
+        mammoth = module
+        console.log('使用 module 直接导出')
+      } else {
+        console.error('Mammoth 模块结构:', Object.keys(module))
+        return {
+          success: false,
+          text: '',
+          error: 'Mammoth 库加载失败：找不到 extractRawText 方法'
+        }
+      }
     }
 
+    console.log('开始解析 Word 文件:', file.name)
     const arrayBuffer = await file.arrayBuffer()
+    console.log('文件读取成功，大小:', arrayBuffer.byteLength, 'bytes')
+
     const result = await mammoth.extractRawText({ arrayBuffer })
+    console.log('文本提取成功，长度:', result.value.length)
 
     let fullText = result.value
 
@@ -173,16 +189,32 @@ async function parseWord(file: File): Promise<ParseResult> {
       }
     }
 
+    console.log('Word 文件解析成功')
     return {
       success: true,
       text: fullText
     }
   } catch (error) {
-    console.error('Word 解析错误:', error)
+    console.error('Word 解析错误详情:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
+
+    // 提供更具体的错误信息
+    let errorMessage = 'Word 文件解析失败，请确保文件未损坏'
+    if (error instanceof Error) {
+      if (error.message.includes('Cannot read')) {
+        errorMessage = 'Word 文件格式错误或已损坏'
+      } else if (error.message.includes('extractRawText')) {
+        errorMessage = 'Mammoth 库初始化失败，请刷新页面重试'
+      }
+    }
+
     return {
       success: false,
       text: '',
-      error: 'Word 文件解析失败，请确保文件未损坏'
+      error: errorMessage
     }
   }
 }
