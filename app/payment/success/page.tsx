@@ -9,6 +9,7 @@ import { isChinaRegion } from "@/lib/config/region";
 import { getAccessToken } from "@/components/auth/auth-provider";
 import { getSupabaseClient } from "@/lib/integrations/supabase";
 import { useT } from "@/lib/i18n";
+import { saveSupabaseUserCache } from "@/lib/auth/auth-state-manager-intl";
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -164,6 +165,18 @@ function PaymentSuccessContent() {
               return;
             }
 
+            // Save to cache to prevent logout on navigation
+            const userProfile = {
+              id: user.id,
+              email: user.email || "",
+              name: user.user_metadata?.displayName || user.user_metadata?.full_name || user.user_metadata?.name || "",
+              avatar: user.user_metadata?.avatar || user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+              subscription_plan: user.user_metadata?.subscription_plan,
+              subscription_status: user.user_metadata?.subscription_status,
+              membership_expires_at: user.user_metadata?.membership_expires_at,
+            };
+            saveSupabaseUserCache(userProfile);
+
             console.log("User info refreshed successfully (INTL):", user.user_metadata);
           }
         } catch (error) {
@@ -205,7 +218,21 @@ function PaymentSuccessContent() {
       try {
         const supabase = getSupabaseClient();
         await supabase.auth.refreshSession();
-        await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Save to cache BEFORE navigation to prevent logout on page reload
+        if (user) {
+          const userProfile = {
+            id: user.id,
+            email: user.email || "",
+            name: user.user_metadata?.displayName || user.user_metadata?.full_name || user.user_metadata?.name || "",
+            avatar: user.user_metadata?.avatar || user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+            subscription_plan: user.user_metadata?.subscription_plan,
+            subscription_status: user.user_metadata?.subscription_status,
+            membership_expires_at: user.user_metadata?.membership_expires_at,
+          };
+          saveSupabaseUserCache(userProfile);
+        }
       } catch (error) {
         console.error("Failed to refresh session before navigation:", error);
       }
@@ -214,7 +241,30 @@ function PaymentSuccessContent() {
     window.location.href = "/dashboard";
   };
 
-  const handleStartUsing = () => {
+  const handleStartUsing = async () => {
+    // Save user to cache before navigation (same as handleGoHome)
+    if (!isChinaRegion()) {
+      try {
+        const supabase = getSupabaseClient();
+        await supabase.auth.refreshSession();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+          const userProfile = {
+            id: user.id,
+            email: user.email || "",
+            name: user.user_metadata?.displayName || user.user_metadata?.full_name || user.user_metadata?.name || "",
+            avatar: user.user_metadata?.avatar || user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+            subscription_plan: user.user_metadata?.subscription_plan,
+            subscription_status: user.user_metadata?.subscription_status,
+            membership_expires_at: user.user_metadata?.membership_expires_at,
+          };
+          saveSupabaseUserCache(userProfile);
+        }
+      } catch (error) {
+        console.error("Failed to refresh session before navigation:", error);
+      }
+    }
     router.push("/exam");
   };
 
