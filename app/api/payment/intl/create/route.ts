@@ -67,11 +67,13 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: userId,
         payment_id: result.paymentId,
-        provider,
+        method: provider,
         amount,
         currency: currency || "USD",
         status: "pending",
-        metadata: { paymentType, days },
+        type: paymentType || "pro",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .select();
 

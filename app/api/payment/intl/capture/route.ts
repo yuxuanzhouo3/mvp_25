@@ -161,7 +161,11 @@ export async function POST(request: NextRequest) {
     // 5. Update payment record
     const { error: paymentError } = await supabase
       .from("payments")
-      .update({ status: "completed" })
+      .update({
+        status: "paid",
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .eq("payment_id", token);
 
     if (paymentError) {
