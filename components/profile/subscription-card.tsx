@@ -47,8 +47,27 @@ export function SubscriptionCard() {
   ]
 
   useEffect(() => {
-    fetchSubscription()
-  }, [])
+    if (isChinaRegion()) {
+      fetchSubscription()
+    } else {
+      // For international version, read from user context
+      if (user) {
+        const hasActiveSub = user.subscription_status === "active"
+        const expiresAt = user.membership_expires_at
+
+        setSubscription(hasActiveSub ? {
+          id: user.id,
+          userId: user.id,
+          plan: "pro",
+          status: "active",
+          startDate: new Date().toISOString(),
+          endDate: expiresAt || new Date().toISOString(),
+          autoRenew: false,
+        } : null)
+      }
+      setIsLoading(false)
+    }
+  }, [user])
 
   const fetchSubscription = async () => {
     try {
