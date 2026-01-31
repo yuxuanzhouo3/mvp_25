@@ -537,7 +537,7 @@ export default function TargetedQuizPage() {
   // 返回首页
   const handleGoHome = useCallback(() => {
     localStorage.removeItem('targetedAssessmentData')
-    router.push('/')
+    router.push('/dashboard')
   }, [router])
 
   // 当前题目
@@ -550,7 +550,7 @@ export default function TargetedQuizPage() {
         <Card className="bg-white dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 p-8 max-w-md text-center">
           <p className="text-amber-600 dark:text-amber-400 mb-4">{error}</p>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/dashboard')}
             className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors cursor-pointer"
           >
             返回首页

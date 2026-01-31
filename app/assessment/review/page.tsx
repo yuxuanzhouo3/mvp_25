@@ -70,7 +70,7 @@ export default function AssessmentReviewPage() {
       setCurrentIndex(currentIndex + 1)
     } else {
       // 所有题目都复习完了
-      router.push('/')
+      router.push('/dashboard')
     }
   }
 
@@ -81,7 +81,7 @@ export default function AssessmentReviewPage() {
           <BookMarked className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">错题本为空</h2>
           <p className="text-neutral-500 dark:text-neutral-400 mb-6">暂时没有错题需要复习</p>
-          <Button onClick={() => router.push('/')}>返回首页</Button>
+          <Button onClick={() => router.push('/dashboard')}>返回首页</Button>
         </Card>
       </div>
     )

@@ -73,7 +73,7 @@ export function SidebarNavigation({ className }: SidebarNavigationProps) {
         <Button
           variant="ghost"
           className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/dashboard")}
         >
           <ChevronLeft className="h-4 w-4" />
           {t.profile.backToHome}

@@ -709,7 +709,7 @@ export function PracticeArena({ examName = "考研数学" }: PracticeArenaProps)
           wrongCount={rankState.todayWrong}
           wrongQuestionsCount={wrongQuestions.length}
           onRestart={handleRestart}
-          onGoHome={() => router.push('/')}
+          onGoHome={() => router.push('/dashboard')}
           onGoReview={() => router.push('/exam/review')}
           onViewDetails={() => router.push('/exam/review')}
         />
@@ -740,7 +740,7 @@ export function PracticeArena({ examName = "考研数学" }: PracticeArenaProps)
               <Button
                 onClick={() => {
                   setShowExitConfirm(false)
-                  router.push('/')
+                  router.push('/dashboard')
                 }}
                 className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
               >
