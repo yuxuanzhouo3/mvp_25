@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: process.env.AI_MODEL_NAME || 'qwen-plus',
+        model: process.env.AI_SEARCH_MODEL_NAME || 'qwen-turbo',
         messages: [
           {
             role: 'system',

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'qwen-plus',
+        model: process.env.AI_MODEL_NAME || 'qwen-max',
         messages,
         stream: true
       })

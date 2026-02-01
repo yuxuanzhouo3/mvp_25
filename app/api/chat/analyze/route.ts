@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // 调用 AI 模型进行分析
     const completion = await openai.chat.completions.create({
-      model: process.env.AI_MODEL_NAME || 'qwen-plus',
+      model: process.env.AI_MODEL_NAME || 'qwen-max',
       response_format: { type: 'json_object' },
       messages: [
         {

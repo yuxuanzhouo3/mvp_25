@@ -8,6 +8,8 @@ interface AchievementBadgesProps {
   achievements: string[]
 }
 
+
+
 export function AchievementBadges({ achievements }: AchievementBadgesProps) {
   const allAchievements = [
     {

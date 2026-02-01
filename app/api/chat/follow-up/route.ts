@@ -89,7 +89,7 @@ ${optionsText}
     });
 
     const completion = await openai.chat.completions.create({
-      model: process.env.AI_MODEL_NAME || 'qwen-plus',
+      model: process.env.AI_MODEL_NAME || 'qwen-max',
       messages,
       max_tokens: 800,
       temperature: 0.7

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       : `用户回答错误。题目是："${question}"，用户选择了"${userChoice}"，但正确答案是"${correctChoice}"。请用2-3句话简短解释正确答案，帮助用户理解。`;
 
     const completion = await openai.chat.completions.create({
-      model: process.env.AI_MODEL_NAME || 'qwen-plus',
+      model: process.env.AI_MODEL_NAME || 'qwen-max',
       messages: [
         {
           role: 'system',
