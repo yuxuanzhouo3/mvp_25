@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       if (userId && days > 0) {
         await supabase
           .from("payments")
-          .update({ status: "completed" })
+          .update({ status: "paid" })
           .eq("payment_id", body.resource.id);
 
         const endDate = new Date();

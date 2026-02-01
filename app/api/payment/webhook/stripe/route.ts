@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         // 更新支付状态
         await supabase
           .from("payments")
-          .update({ status: "completed" })
+          .update({ status: "paid" })
           .eq("payment_id", session.id);
 
         // 延长订阅
