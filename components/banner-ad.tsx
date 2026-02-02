@@ -34,7 +34,6 @@ export function BannerAd({ onUpgrade, position = 'bottom' }: BannerAdProps) {
   const [isVisible, setIsVisible] = useState(true)
   const [dynamicAd, setDynamicAd] = useState<Advertisement | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   // 加载动态广告
   useEffect(() => {
@@ -60,7 +59,6 @@ export function BannerAd({ onUpgrade, position = 'bottom' }: BannerAdProps) {
         }
       } catch (err) {
         console.error(`❌ [BannerAd] Failed to load ads:`, err)
-        setError(err instanceof Error ? err.message : 'Failed to load ads')
         setDynamicAd(null)
       } finally {
         setIsLoading(false)
@@ -110,9 +108,13 @@ export function BannerAd({ onUpgrade, position = 'bottom' }: BannerAdProps) {
     }
   }
 
-  // 加载中不显示
+  // 加载中显示骨架屏
   if (isLoading) {
-    return null
+    return (
+      <Card className="relative mb-8 overflow-hidden">
+        <div className="h-[200px] bg-neutral-200 dark:bg-neutral-800 animate-pulse" />
+      </Card>
+    )
   }
 
   // 已关闭不显示
