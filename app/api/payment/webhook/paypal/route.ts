@@ -76,6 +76,17 @@ export async function POST(request: NextRequest) {
           is_active: true,
           plan_type: customId.paymentType,
         });
+
+        // Update Supabase auth user metadata so session refresh picks up subscription
+        await supabase.auth.admin.updateUserById(userId, {
+          user_metadata: {
+            subscription_plan: customId.paymentType || "premium",
+            subscription_status: "active",
+            membership_expires_at: endDate.toISOString(),
+          },
+        });
+
+        console.log(`✅ [PayPal Webhook] Updated subscription and user metadata for user ${userId}`);
       }
     }
 
