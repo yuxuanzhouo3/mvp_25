@@ -596,7 +596,7 @@ export function getSuggestedQuestions(question: Question): string[] {
 
 // ============ 考试类型预设 ============
 
-export const EXAM_PRESETS = [
+export const CN_EXAM_PRESETS = [
   { id: 'kaoyan_math', name: '考研数学', category: '研究生考试' },
   { id: 'kaoyan_english', name: '考研英语', category: '研究生考试' },
   { id: 'kaoyan_politics', name: '考研政治', category: '研究生考试' },
@@ -607,6 +607,25 @@ export const EXAM_PRESETS = [
   { id: 'cpa', name: '注册会计师', category: '职业认证' },
   { id: 'other', name: '其他考试', category: '自定义' }
 ];
+
+export const INTL_EXAM_PRESETS = [
+  { id: 'gre', name: 'GRE', category: 'Graduate Exams' },
+  { id: 'gmat', name: 'GMAT', category: 'Graduate Exams' },
+  { id: 'toefl', name: 'TOEFL', category: 'English Tests' },
+  { id: 'ielts', name: 'IELTS', category: 'English Tests' },
+  { id: 'sat', name: 'SAT', category: 'Undergraduate Exams' },
+  { id: 'act', name: 'ACT', category: 'Undergraduate Exams' },
+  { id: 'cpa', name: 'CPA', category: 'Professional Certification' },
+  { id: 'pmp', name: 'PMP', category: 'Professional Certification' },
+  { id: 'other', name: 'Other Exams', category: 'Custom' }
+];
+
+export const EXAM_PRESETS = CN_EXAM_PRESETS; // For backward compatibility
+
+export function getExamPresets() {
+  const { isChinaRegion } = require('./config/region');
+  return isChinaRegion() ? CN_EXAM_PRESETS : INTL_EXAM_PRESETS;
+}
 
 // ============ 初始用户状态 ============
 

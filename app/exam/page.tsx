@@ -22,9 +22,10 @@ import {
   AlertCircle,
   ExternalLink
 } from "lucide-react"
-import { EXAM_PRESETS } from "@/lib/exam-mock-data"
+import { getExamPresets } from "@/lib/exam-mock-data"
 import { parseFile, validateFile, MAX_FILE_SIZE } from "@/lib/file-parser"
 import { useT } from "@/lib/i18n"
+import { isChinaRegion } from "@/lib/config/region"
 import { AiRequirementAgent } from "@/components/exam/AiRequirementAgent"
 import { DocumentAiAgent } from "@/components/exam/DocumentAiAgent"
 import { Requirement } from "@/lib/requirement-parser"
@@ -874,13 +875,13 @@ function ExamSetupContent() {
                   <Input
                     value={examName}
                     onChange={(e) => setExamName(e.target.value)}
-                    placeholder={t.examSetup.examNamePlaceholder}
+                    placeholder={isChinaRegion() ? t.examSetup.examNamePlaceholder.cn : t.examSetup.examNamePlaceholder.intl}
                     className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-neutral-950 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
                   />
 
                   {/* 快速选择 */}
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {EXAM_PRESETS.slice(0, 6).map(preset => (
+                    {getExamPresets().slice(0, 6).map(preset => (
                       <button
                         key={preset.id}
                         onClick={() => setExamName(preset.name)}
@@ -903,7 +904,7 @@ function ExamSetupContent() {
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  智能引导出题
+                  {t.examSetup.aiGuidedGeneration}
                 </Button>
 
                 <Button

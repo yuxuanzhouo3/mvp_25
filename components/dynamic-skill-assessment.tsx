@@ -10,6 +10,7 @@ import { ArrowRight, ArrowLeft, Upload, Search, Loader2, Zap, Brain, ChevronRigh
 import { getSubjectDimensions, type SubjectDimension } from "@/lib/subject-dimensions"
 import { analyzeAssessmentResult } from "@/lib/types/assessment"
 import { useT } from "@/lib/i18n"
+import { isChinaRegion } from "@/lib/config/region"
 
 interface DynamicSkillAssessmentProps {
   onComplete?: (subject: string, ratings: Record<string, number>) => void
@@ -36,15 +37,18 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
   const [ratings, setRatings] = useState<Record<string, number>>({})
   const [currentPage, setCurrentPage] = useState(1)
 
-  // 快捷科目标签配置
-  const quickSubjects = [
-    { key: "gradMath", label: t.assessment.subjects.gradMath },
-    { key: "gradEnglish", label: t.assessment.subjects.gradEnglish },
-    { key: "gradPolitics", label: t.assessment.subjects.gradPolitics },
-    { key: "cet4", label: t.assessment.subjects.cet4 },
-    { key: "cet6", label: t.assessment.subjects.cet6 },
-    { key: "ncre2", label: t.assessment.subjects.ncre2 },
-  ]
+  // 快捷科目标签配置 - 根据地区动态加载
+  const getQuickSubjects = () => {
+    const isCN = isChinaRegion()
+    const subjectsObj = isCN ? t.assessment.subjects.cn : t.assessment.subjects.intl
+
+    return Object.entries(subjectsObj).map(([key, label]) => ({
+      key,
+      label
+    }))
+  }
+
+  const quickSubjects = getQuickSubjects()
 
   // 计算总页数
   const totalPages = Math.ceil(dimensions.length / DIMENSIONS_PER_PAGE)
@@ -168,7 +172,7 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
             value={subjectInput}
             onChange={(e) => setSubjectInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t.assessment.inputPlaceholder}
+            placeholder={isChinaRegion() ? t.assessment.placeholder.cn : t.assessment.placeholder.intl}
             className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400 pr-14 h-14 text-xl font-medium rounded-xl"
             disabled={isAnalyzing}
           />

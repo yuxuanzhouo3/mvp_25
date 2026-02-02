@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Loader2, ArrowLeft, Home, CheckCircle, AlertCircle } from "lucide-react"
+import { useT } from "@/lib/i18n"
 
 import { AssessmentAnalysis } from "@/components/assessment/AssessmentAnalysis"
 import { PersonalizedQuizIntro } from "@/components/assessment/PersonalizedQuizIntro"
@@ -48,6 +49,7 @@ interface QuizState {
 
 export default function TargetedQuizPage() {
   const router = useRouter()
+  const t = useT()
 
   // 阶段状态
   const [phase, setPhase] = useState<Phase>('analysis')
@@ -107,12 +109,12 @@ export default function TargetedQuizPage() {
         const data = JSON.parse(stored) as AssessmentResult
         setAssessmentData(data)
       } catch (e) {
-        console.error('解析评估数据失败:', e)
-        setError('评估数据加载失败，请重新进行评估')
+        console.error(t.targetedQuiz.parseDataFailed, e)
+        setError(t.targetedQuiz.loadingDataFailed)
       }
     } else {
       // 没有评估数据，返回首页
-      setError('请先完成技能评估')
+      setError(t.targetedQuiz.pleaseCompleteAssessment)
     }
   }, [])
 
@@ -127,7 +129,7 @@ export default function TargetedQuizPage() {
 
     try {
       // 步骤1: 分析能力模型
-      setProcessingSteps(['🔍 正在分析您的能力模型...'])
+      setProcessingSteps([t.targetedQuiz.analyzingModel])
       setLoadingProgress(10)
       await new Promise(resolve => setTimeout(resolve, 400))
 
@@ -172,19 +174,19 @@ export default function TargetedQuizPage() {
       const mediumCount = mediumDimensions.length
       const strongCount = strongDimensions.length
 
-      setProcessingSteps(prev => [...prev, `✅ 已识别 ${weakCount} 个薄弱维度、${mediumCount} 个中等维度、${strongCount} 个优势维度`])
+      setProcessingSteps(prev => [...prev, t.targetedQuiz.identifiedDimensions.replace('{weak}', weakCount.toString()).replace('{medium}', mediumCount.toString()).replace('{strong}', strongCount.toString())])
       setLoadingProgress(25)
       await new Promise(resolve => setTimeout(resolve, 400))
 
       // 步骤3: 提取关键知识点
       if (weakDimensions.length > 0) {
-        setProcessingSteps(prev => [...prev, `📚 正在提取薄弱知识点：${weakDimensions.map(d => d.name).join('、')}`])
+        setProcessingSteps(prev => [...prev, t.targetedQuiz.extractingWeakPoints.replace('{points}', weakDimensions.map(d => d.name).join('、'))])
       }
       setLoadingProgress(35)
       await new Promise(resolve => setTimeout(resolve, 400))
 
       // 步骤4: 生成针对性题目
-      setProcessingSteps(prev => [...prev, `🤖 AI 正在生成 ${questionCount} 道针对性题目...`])
+      setProcessingSteps(prev => [...prev, t.targetedQuiz.generatingQuestions.replace('{count}', questionCount.toString())])
       setLoadingProgress(45)
 
       // 模拟题目生成进度
@@ -214,21 +216,21 @@ export default function TargetedQuizPage() {
       setLoadingProgress(75)
 
       if (!response.ok) {
-        throw new Error('生成题目失败')
+        throw new Error(t.targetedQuiz.generateFailed)
       }
 
       const data = await response.json()
 
       if (!data.success || !data.questions || data.questions.length === 0) {
-        throw new Error(data.error || '未能生成题目')
+        throw new Error(data.error || t.targetedQuiz.noQuestionsGenerated)
       }
 
-      setProcessingSteps(prev => [...prev, `📝 已生成 ${data.questions.length} 道题目`])
+      setProcessingSteps(prev => [...prev, t.targetedQuiz.questionsGenerated.replace('{count}', data.questions.length.toString())])
       setLoadingProgress(85)
       await new Promise(resolve => setTimeout(resolve, 300))
 
       // 步骤5: 优化题目质量
-      setProcessingSteps(prev => [...prev, '⚡ 正在优化题目难度分布...'])
+      setProcessingSteps(prev => [...prev, t.targetedQuiz.optimizingDifficulty])
       setLoadingProgress(95)
       await new Promise(resolve => setTimeout(resolve, 400))
 
@@ -249,7 +251,7 @@ export default function TargetedQuizPage() {
       })
 
       // 步骤6: 完成
-      setProcessingSteps(prev => [...prev, `🎉 题目生成完成！共 ${formattedQuestions.length} 道精选题目`])
+      setProcessingSteps(prev => [...prev, t.targetedQuiz.generationComplete.replace('{count}', formattedQuestions.length.toString())])
       setLoadingProgress(100)
 
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -257,10 +259,10 @@ export default function TargetedQuizPage() {
       setIsLoading(false)
 
     } catch (error) {
-      console.error('生成题目失败:', error)
-      setProcessingSteps(prev => [...prev, '⚠️ 生成失败，请重试'])
+      console.error(t.targetedQuiz.generateFailed, error)
+      setProcessingSteps(prev => [...prev, t.targetedQuiz.generationFailedRetry])
       setLoadingProgress(100)
-      setError(error instanceof Error ? error.message : '生成题目失败，请重试')
+      setError(error instanceof Error ? error.message : t.targetedQuiz.generationFailedRetry)
 
       await new Promise(resolve => setTimeout(resolve, 1500))
       setIsLoading(false)
@@ -415,7 +417,7 @@ export default function TargetedQuizPage() {
     if (!assessmentData) return
 
     setIsLoading(true)
-    setLoadingMessage('正在分析您的答题表现...')
+    setLoadingMessage(t.targetedQuiz.analyzingPerformance)
 
     try {
       // 按维度统计答题结果
@@ -477,13 +479,13 @@ export default function TargetedQuizPage() {
       })
 
       if (!response.ok) {
-        throw new Error('分析失败')
+        throw new Error(t.targetedQuiz.analysisFailed)
       }
 
       const data = await response.json()
 
       if (!data.success || !data.analysis) {
-        throw new Error(data.error || '分析失败')
+        throw new Error(data.error || t.targetedQuiz.analysisFailed)
       }
 
       setAnalysisResult(data.analysis)
@@ -491,7 +493,7 @@ export default function TargetedQuizPage() {
       setIsLoading(false)
 
     } catch (error) {
-      console.error('分析失败:', error)
+      console.error(t.targetedQuiz.analysisFailed, error)
       // 即使API失败，也显示本地计算的基础结果
       const correctCount = quizState.answers.filter(a => a.isCorrect).length
       const totalQuestions = quizState.answers.length
@@ -508,17 +510,17 @@ export default function TargetedQuizPage() {
           score: Math.min(95, Math.max(10, accuracy)),
           level: accuracy >= 70 ? 'high' : accuracy >= 50 ? 'medium' : 'low',
           factors: {
-            positive: accuracy >= 60 ? ['完成了全部练习题'] : [],
-            negative: accuracy < 60 ? ['正确率偏低，需要加强练习'] : []
+            positive: accuracy >= 60 ? [t.targetedQuiz.completedAllQuestions] : [],
+            negative: accuracy < 60 ? [t.targetedQuiz.lowAccuracyNeedPractice] : []
           }
         },
-        recommendations: ['建议继续练习以巩固知识点'],
+        recommendations: [t.targetedQuiz.continueToConsolidate],
         grade: accuracy >= 95 ? 'S' : accuracy >= 85 ? 'A' : accuracy >= 70 ? 'B' : accuracy >= 60 ? 'C' : 'D'
       })
       setPhase('results')
       setIsLoading(false)
     }
-  }, [assessmentData, quizState.answers, quizState.questions])
+  }, [assessmentData, quizState.answers, quizState.questions, t])
 
   // 重新开始
   const handleRestart = useCallback(() => {
@@ -552,7 +554,7 @@ export default function TargetedQuizPage() {
             onClick={() => router.push('/dashboard')}
             className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors cursor-pointer"
           >
-            返回首页
+            {t.targetedQuiz.goHome}
           </button>
         </Card>
       </div>
@@ -579,14 +581,14 @@ export default function TargetedQuizPage() {
               className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-white transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>返回</span>
+              <span>{t.targetedQuiz.goBack}</span>
             </button>
             <h1 className="text-lg font-semibold text-neutral-950 dark:text-white">
-              {phase === 'analysis' && '能力分析'}
-              {phase === 'intro' && '针对性练习'}
-              {phase === 'loading' && '生成题目中'}
-              {phase === 'quiz' && `第 ${quizState.currentIndex + 1} / ${quizState.questions.length} 题`}
-              {phase === 'feedback' && '答题反馈'}
+              {phase === 'analysis' && t.targetedQuiz.abilityAnalysis}
+              {phase === 'intro' && t.targetedQuiz.pageTitle}
+              {phase === 'loading' && t.targetedQuiz.generatingTitle}
+              {phase === 'quiz' && `${t.exam.question} ${quizState.currentIndex + 1} / ${quizState.questions.length}`}
+              {phase === 'feedback' && t.exam.answer}
             </h1>
             <button
               onClick={handleGoHome}
@@ -628,9 +630,9 @@ export default function TargetedQuizPage() {
               <div className="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
                 <Loader2 className="w-10 h-10 text-white animate-spin" />
               </div>
-              <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">正在生成针对性题目</h2>
+              <h2 className="text-2xl font-bold text-neutral-950 dark:text-white mb-2">{t.targetedQuiz.generatingTargeted}</h2>
               <p className="text-neutral-500 dark:text-neutral-400 mb-8">
-                AI 正在根据您的弱点生成专属练习题
+                {t.targetedQuiz.generatingBasedOnWeakness}
               </p>
 
               <div className="max-w-md mx-auto">
@@ -659,7 +661,7 @@ export default function TargetedQuizPage() {
                   // 默认显示（如果没有步骤）
                   <div className="flex items-center gap-3">
                     <Loader2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin" />
-                    <span className="text-neutral-500 dark:text-neutral-400">正在初始化...</span>
+                    <span className="text-neutral-500 dark:text-neutral-400">{t.targetedQuiz.initializing}</span>
                   </div>
                 )}
               </div>
