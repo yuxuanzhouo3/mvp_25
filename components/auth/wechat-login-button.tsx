@@ -36,22 +36,13 @@ export function WechatLoginButton({
   // 注册全局回调函数，用于接收 Android 端传回的登录数据
   useEffect(() => {
     // @ts-ignore
-    window.onWeChatLoginSuccess = (accessToken: string, openId: string, unionId: string) => {
-      console.log("微信登录成功", { accessToken, openId, unionId });
-      alert(`登录成功！\nAccessToken: ${accessToken}\nOpenId: ${openId}\nUnionId: ${unionId}`);
+    window.onWeChatLoginSuccess = (code: string) => {
+      console.log("Web端收到微信Code", code);
+      alert("Web端收到Code了: " + code);
 
-      // 保存登录信息到 localStorage
-      localStorage.setItem('wechat_access_token', accessToken);
-      localStorage.setItem('wechat_open_id', openId);
-      localStorage.setItem('wechat_union_id', unionId);
-
-      // 调用成功回调
-      if (onSuccess) {
-        onSuccess({ accessToken, openId, unionId });
-      }
-
-      // 跳转到主页
-      window.location.href = "/dashboard";
+      // 把 code 传给后端 API，让后端去换取 accessToken
+      const callbackUrl = `/api/auth/wechat/callback?code=${code}&state=/`;
+      window.location.href = callbackUrl;
     };
 
     // @ts-ignore
