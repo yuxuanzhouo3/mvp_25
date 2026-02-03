@@ -38,7 +38,6 @@ export function WechatLoginButton({
     // @ts-ignore
     window.onWeChatLoginSuccess = (code: string) => {
       console.log("Web端收到微信Code", code);
-      alert("Web端收到Code了: " + code);
 
       // 把 code 传给后端 API，让后端去换取 accessToken
       // state=/dashboard 表示登录成功后跳转到 dashboard 页面
@@ -49,7 +48,6 @@ export function WechatLoginButton({
     // @ts-ignore
     window.onWeChatLoginError = (error: string) => {
       console.error("微信登录失败", error);
-      alert(`登录失败：${error}`);
 
       // 调用错误回调
       if (onError) {
@@ -67,23 +65,12 @@ export function WechatLoginButton({
   }, [onSuccess, onError]);
 
   const handleWechatLogin = async () => {
-    // 🔍 DEBUG 1: 看看 window.Android 到底是不是 undefined
-    // @ts-ignore
-    const status = window.Android ? "存在(Found)" : "丢失(Missing)";
-    alert("接口状态: " + status);
-
-    // 🔍 DEBUG 2: 看看现在的网址是不是你的 App 内部
-    alert("当前网址: " + window.location.href);
-
     // @ts-ignore
     if (typeof window !== 'undefined' && window.Android) {
       // 调用原生安卓微信登录
       // @ts-ignore
       window.Android.login();
     } else {
-      // 为了防止手快点错，先弹窗提示进入了 fallback
-      alert("正在走网页版跳转逻辑...");
-
       setIsLoading(true)
 
       try {
