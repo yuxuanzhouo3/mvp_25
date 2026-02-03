@@ -55,14 +55,21 @@ export function LoginForm({
   };
 
   const handleWechatLogin = () => {
-    // 优先检查是否在安卓 WebView 环境中
+    // 🔍 DEBUG 1: 看看 window.Android 到底是不是 undefined
+    // @ts-ignore
+    const status = window.Android ? "存在(Found)" : "丢失(Missing)";
+    alert("接口状态: " + status);
+
+    // 🔍 DEBUG 2: 看看现在的网址是不是你的 App 内部
+    alert("当前网址: " + window.location.href);
+
     // @ts-ignore
     if (typeof window !== 'undefined' && window.Android) {
-      // 调用原生安卓微信登录
       // @ts-ignore
       window.Android.login();
     } else {
-      // 非安卓环境：跳转到微信登录 API
+      // 为了防止手快点错，先弹窗提示进入了 fallback
+      alert("正在走网页版跳转逻辑...");
       const callbackUrl = encodeURIComponent(
         `${window.location.origin}/api/auth/wechat/callback`
       );
