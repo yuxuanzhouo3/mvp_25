@@ -64,13 +64,89 @@ export function WechatLoginButton({
     };
   }, [onSuccess, onError]);
 
+  // 检测是否在微信小程序环境中
+  const isMiniProgram = () => {
+    if (typeof window === 'undefined') return false;
+    // 检测微信小程序环境
+    return /miniProgram/i.test(navigator.userAgent) ||
+           // @ts-ignore
+           window.__wxjs_environment === 'miniprogram';
+  };
+
   const handleWechatLogin = async () => {
     // @ts-ignore
     if (typeof window !== 'undefined' && window.Android) {
       // 调用原生安卓微信登录
       // @ts-ignore
       window.Android.login();
+    } else if (isMiniProgram()) {
+      // 小程序环境：调用小程序登录API
+      setIsLoading(true);
+
+      try {
+        // @ts-ignore
+        if (typeof wx !== 'undefined' && wx.login) {
+          // @ts-ignore
+          wx.login({
+            success: async (res: any) => {
+              if (res.code) {
+                // 将code发送到后端小程序登录接口
+                try {
+                  const response = await fetch('/api/auth/wechat/miniprogram', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code: res.code }),
+                  });
+
+                  const data = await response.json();
+
+                  if (data.success) {
+                    // 登录成功，保存token
+                    localStorage.setItem('access_token', data.accessToken);
+                    localStorage.setItem('refresh_token', data.refreshToken);
+
+                    if (onSuccess) {
+                      onSuccess(data);
+                    }
+
+                    // 跳转到首页或dashboard
+                    window.location.href = '/dashboard';
+                  } else {
+                    throw new Error(data.error || '小程序登录失败');
+                  }
+                } catch (err: any) {
+                  console.error('小程序登录API调用失败:', err);
+                  if (onError) {
+                    onError(err.message || '小程序登录失败，请重试');
+                  }
+                }
+              } else {
+                throw new Error('获取微信code失败');
+              }
+              setIsLoading(false);
+            },
+            fail: (err: any) => {
+              console.error('wx.login失败:', err);
+              if (onError) {
+                onError('微信登录失败，请重试');
+              }
+              setIsLoading(false);
+            }
+          });
+        } else {
+          throw new Error('微信小程序环境未就绪');
+        }
+      } catch (err: any) {
+        console.error("小程序登录错误:", err);
+        if (onError) {
+          onError(err.message || "小程序登录失败，请重试");
+        }
+        setIsLoading(false);
+      }
     } else {
+      // 网页环境：使用公众号登录
       setIsLoading(true)
 
       try {
