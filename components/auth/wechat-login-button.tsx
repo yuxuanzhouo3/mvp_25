@@ -150,12 +150,25 @@ export function WechatLoginButton({
       // @ts-ignore
       window.Android.login();
     } else if (isMiniProgram()) {
-      // 小程序WebView环境：显示提示信息
-      // WebView中无法直接调用wx.login()，需要在小程序端处理登录
-      console.log('检测到小程序环境，但WebView中无法直接登录');
+      // 小程序环境：通过 postMessage 请求小程序调用 wx.login()
+      console.log('[WECHAT BUTTON] 小程序环境，发送登录请求');
 
-      if (onError) {
-        onError('请在小程序中完成登录');
+      // @ts-ignore
+      if (typeof wx !== 'undefined' && wx.miniProgram) {
+        // @ts-ignore
+        wx.miniProgram.postMessage({
+          data: { type: 'REQUEST_LOGIN' }
+        });
+
+        // 显示提示
+        if (onError) {
+          onError('正在跳转登录...');
+        }
+      } else {
+        console.error('[WECHAT BUTTON] wx.miniProgram 不可用');
+        if (onError) {
+          onError('小程序环境异常，请重试');
+        }
       }
     } else {
       // 网页环境：使用公众号登录
