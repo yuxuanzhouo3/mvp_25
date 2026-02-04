@@ -37,19 +37,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: 临时自动确认用户邮箱 - 记得后面改回来
-    if (data.user) {
-      const { error: confirmError } = await supabase.auth.admin.updateUserById(
-        data.user.id,
-        { email_confirm: true }
-      );
-      if (confirmError) {
-        console.error("❌ [Auth] Failed to auto-confirm email:", confirmError);
-      } else {
-        console.log("✅ [Auth] Email auto-confirmed for user:", data.user.id);
-      }
-    }
-
     // 创建用户资料记录（用于后台管理系统）
     let profileCreated = false;
     let profileError = null;

@@ -54,17 +54,27 @@ export function LoginForm({
     }
   };
 
-  const handleWechatLogin = () => {
+  const handleWechatLogin = async () => {
     // @ts-ignore
     if (typeof window !== 'undefined' && window.Android) {
       // @ts-ignore
       window.Android.login();
     } else {
-      const callbackUrl = encodeURIComponent(
-        `${window.location.origin}/api/auth/wechat/callback`
-      );
-      const state = encodeURIComponent(redirectTo);
-      window.location.href = `/api/auth/wechat?callback=${callbackUrl}&state=${state}`;
+      try {
+        setIsLoading(true);
+        const qs = redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : "";
+        const res = await fetch(`/api/auth/wechat/qrcode${qs}`);
+        const data = await res.json();
+
+        if (!res.ok || !data.qrcodeUrl) {
+          throw new Error(data.error || "微信登录失败");
+        }
+
+        window.location.href = data.qrcodeUrl;
+      } catch (err: any) {
+        setError(err.message || "微信登录失败，请稍后重试");
+        setIsLoading(false);
+      }
     }
   };
 
