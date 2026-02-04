@@ -82,6 +82,10 @@ export async function POST(request: NextRequest) {
           id: userId,
           email: result.email || email,
           name: result.name || "",
+          pro: result.pro,
+          subscription_plan: result.subscription_plan,
+          subscription_status: result.subscription_status,
+          membership_expires_at: result.membership_expires_at,
         },
         tokenMeta: result.tokenMeta,
       });

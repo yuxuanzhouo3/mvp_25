@@ -55,6 +55,10 @@ export async function loginUser(
   userId?: string;
   email?: string;
   name?: string;
+  pro?: boolean;
+  subscription_plan?: string;
+  subscription_status?: string;
+  membership_expires_at?: string;
   accessToken?: string;
   refreshToken?: string;
   tokenMeta?: { accessTokenExpiresIn: number; refreshTokenExpiresIn: number };
@@ -88,6 +92,36 @@ export async function loginUser(
     }
 
     console.log("[CloudBase Service] 登录成功");
+
+    // 检查订阅是否过期
+    if (user.pro) {
+      const { data: subs } = await db
+        .collection(CLOUDBASE_COLLECTIONS.SUBSCRIPTIONS)
+        .where({ user_id: user._id })
+        .orderBy("created_at", "desc")
+        .limit(1)
+        .get();
+
+      if (subs && subs.length > 0) {
+        const sub = subs[0];
+        const endDate = new Date(sub.end_date);
+        const isExpired = endDate < new Date();
+
+        if (isExpired && user.pro) {
+          const now = new Date().toISOString();
+
+          // 更新用户的 pro 状态
+          await usersCollection.doc(user._id).update({
+            pro: false,
+            subscription_status: "expired",
+            updated_at: now,
+          });
+
+          user.pro = false;
+          user.subscription_status = "expired";
+        }
+      }
+    }
 
     const tokenPayload = {
       userId: user._id,
@@ -133,6 +167,10 @@ export async function loginUser(
       userId: user._id,
       email: user.email,
       name: user.name,
+      pro: user.pro,
+      subscription_plan: user.subscription_plan,
+      subscription_status: user.subscription_status,
+      membership_expires_at: user.membership_expires_at,
       accessToken,
       refreshToken: refreshTokenRecord.refreshToken,
       tokenMeta: {
