@@ -49,18 +49,11 @@ export function UpgradeModal({ isOpen, onClose, onUpgradeSuccess, currentRole }:
       savings: "",
     },
     {
-      name: t.subscription.yearly.replace("Yearly", "Quarterly"),
-      price: "¥69",
-      period: "/quarter",
-      popular: true,
-      savings: t.subscription.savePercent.replace("{percent}", "20"),
-    },
-    {
       name: t.subscription.yearly,
-      price: "¥199",
+      price: "¥299",
       period: t.subscription.perYear,
-      popular: false,
-      savings: t.subscription.savePercent.replace("{percent}", "43"),
+      popular: true,
+      savings: t.subscription.savePercent.replace("{percent}", "17"),
     },
   ]
 
@@ -194,27 +187,6 @@ export function UpgradeModal({ isOpen, onClose, onUpgradeSuccess, currentRole }:
               ))}
             </div>
           </div>
-
-          {/* Social Proof */}
-          <Card className="bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 p-4">
-            <div className="text-center">
-              <h4 className="text-neutral-950 dark:text-white font-semibold mb-2">{t.upgrade.socialProof}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">94%</div>
-                  <div className="text-neutral-500 dark:text-neutral-400">{t.upgrade.statEfficiency}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400">3.2x</div>
-                  <div className="text-neutral-500 dark:text-neutral-400">{t.upgrade.statSpeed}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600 dark:text-purple-400">89%</div>
-                  <div className="text-neutral-500 dark:text-neutral-400">{t.upgrade.statGoal}</div>
-                </div>
-              </div>
-            </div>
-          </Card>
 
           {/* CTA */}
           {!isIOSApp && (
