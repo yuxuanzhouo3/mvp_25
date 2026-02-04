@@ -56,7 +56,11 @@ function WechatCallbackContent() {
 
         const data = await response.json();
 
+        console.log("[CALLBACK PAGE] API响应数据:", data);
+        alert(`[调试] API响应:\nstatus: ${response.status}\nsuccess: ${data.success}\nerror: ${data.error || '无'}\ncode: ${data.code || '无'}`);
+
         if (!response.ok || !data.success) {
+          alert(`[调试] 登录失败!\n错误: ${data.error || "微信登录失败"}\n错误代码: ${data.code || '无'}`);
           setError(data.error || "微信登录失败");
           setIsProcessing(false);
           return;
