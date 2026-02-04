@@ -26,10 +26,16 @@ export async function GET(request: NextRequest) {
     }
 
     // 将 code 发送到前端处理
-    // 前端会调用 POST /api/auth/wechat 完成登录
+    // 前端会调用 POST /api/auth/wechat 或 /api/auth/wechat/app 完成登录
     const callbackPageUrl = new URL("/auth/wechat-callback", process.env.NEXT_PUBLIC_APP_URL);
     callbackPageUrl.searchParams.set("code", code);
     callbackPageUrl.searchParams.set("redirect", state);
+
+    // 保留 source 参数（用于区分 APP 端和网页端登录）
+    const source = searchParams.get("source");
+    if (source) {
+      callbackPageUrl.searchParams.set("source", source);
+    }
 
     return NextResponse.redirect(callbackPageUrl.toString());
   } catch (error) {
