@@ -616,8 +616,47 @@ function IntlAuthForm({ defaultTab = "login", onSuccess, className }: UnifiedAut
           </div>
         )}
 
+        {/* 测试文本 - 如果你能看到这个，说明代码被加载了 */}
+        <div style={{color: 'red', fontSize: '20px', fontWeight: 'bold'}}>
+          测试：如果你能看到这个红色文字，说明代码被正确加载了
+        </div>
+
+        {/* 隐私政策同意 */}
+        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+          <Checkbox
+            id="login-privacy-agree"
+            checked={agreeTerms}
+            onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
+            disabled={isLoading}
+            className="mt-0.5"
+          />
+          <label
+            htmlFor="login-privacy-agree"
+            className="text-sm text-muted-foreground cursor-pointer flex-1"
+          >
+            {t.auth.iAgreeTo}{" "}
+            <Button
+              variant="link"
+              className="px-0 h-auto text-sm"
+              type="button"
+              onClick={() => window.open('/privacy', '_blank')}
+            >
+              {t.auth.privacyPolicy}
+            </Button>{" "}
+            {t.common.and}{" "}
+            <Button
+              variant="link"
+              className="px-0 h-auto text-sm"
+              type="button"
+              onClick={() => window.open('/terms', '_blank')}
+            >
+              {t.auth.termsOfService}
+            </Button>
+          </label>
+        </div>
+
         {/* 登录按钮 */}
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full" disabled={isLoading || !agreeTerms}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -778,11 +817,21 @@ function IntlAuthForm({ defaultTab = "login", onSuccess, className }: UnifiedAut
                 className="text-sm text-muted-foreground cursor-pointer flex-1"
               >
                 {t.auth.iAgreeTo}{" "}
-                <Button variant="link" className="px-0 h-auto text-sm" type="button">
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-sm"
+                  type="button"
+                  onClick={() => window.open('/privacy', '_blank')}
+                >
                   {t.auth.privacyPolicy}
                 </Button>{" "}
                 {t.common.and}{" "}
-                <Button variant="link" className="px-0 h-auto text-sm" type="button">
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-sm"
+                  type="button"
+                  onClick={() => window.open('/terms', '_blank')}
+                >
                   {t.auth.termsOfService}
                 </Button>
               </label>
@@ -1026,6 +1075,39 @@ function CNAuthForm({ defaultTab = "login", onSuccess, className }: UnifiedAuthF
               </Button>
             </div>
 
+            {/* 隐私政策同意 */}
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <Checkbox
+                id="login-agree-terms"
+                checked={agreeTerms}
+                onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
+                disabled={isLoading}
+              />
+              <label
+                htmlFor="login-agree-terms"
+                className="text-sm text-muted-foreground cursor-pointer flex-1"
+              >
+                {t.auth.iAgreeTo}{" "}
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-sm"
+                  type="button"
+                  onClick={() => window.open('/privacy', '_blank')}
+                >
+                  {t.auth.privacyPolicy}
+                </Button>{" "}
+                {t.common.and}{" "}
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-sm"
+                  type="button"
+                  onClick={() => window.open('/terms', '_blank')}
+                >
+                  {t.auth.termsOfService}
+                </Button>
+              </label>
+            </div>
+
             {/* 错误/成功提示 */}
             {error && (
               <Alert variant="destructive">
@@ -1042,7 +1124,7 @@ function CNAuthForm({ defaultTab = "login", onSuccess, className }: UnifiedAuthF
             )}
 
             {/* 登录按钮 */}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || !agreeTerms}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1145,11 +1227,21 @@ function CNAuthForm({ defaultTab = "login", onSuccess, className }: UnifiedAuthF
               />
               <Label htmlFor="agree-terms" className="text-sm text-muted-foreground cursor-pointer leading-tight">
                 {t.auth.termsText}{" "}
-                <Button variant="link" className="px-0 h-auto text-sm" type="button">
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-sm"
+                  type="button"
+                  onClick={() => window.open('/terms', '_blank')}
+                >
                   {t.auth.termsOfService}
                 </Button>{" "}
                 {t.common.and}{" "}
-                <Button variant="link" className="px-0 h-auto text-sm" type="button">
+                <Button
+                  variant="link"
+                  className="px-0 h-auto text-sm"
+                  type="button"
+                  onClick={() => window.open('/privacy', '_blank')}
+                >
                   {t.auth.privacyPolicy}
                 </Button>
               </Label>

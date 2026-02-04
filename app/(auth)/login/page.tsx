@@ -125,18 +125,6 @@ function LoginContent() {
 
           {/* 统一认证表单（登录 + 注册 Tabs） */}
           <UnifiedAuthForm defaultTab="login" />
-
-          {/* 服务条款提示 */}
-          <p className="text-xs text-center text-muted-foreground">
-            {t.auth.termsAgreement}{" "}
-            <a href="/terms" className="text-primary hover:underline">
-              {t.auth.termsOfService}
-            </a>{" "}
-            {t.common.and}{" "}
-            <a href="/privacy" className="text-primary hover:underline">
-              {t.auth.privacyPolicy}
-            </a>
-          </p>
         </CardContent>
       </Card>
     </div>
