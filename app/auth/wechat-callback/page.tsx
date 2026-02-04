@@ -23,8 +23,11 @@ function WechatCallbackContent() {
       console.log("[CALLBACK PAGE] - redirect:", redirect);
       console.log("[CALLBACK PAGE] - source:", source);
 
+      alert(`[调试] 回调页面收到参数:\ncode: ${code ? code.substring(0, 20) + '...' : '无'}\nsource: ${source || '无'}\nredirect: ${redirect}`);
+
       if (!code) {
         console.error("[CALLBACK PAGE] 缺少授权码!");
+        alert("[调试] 错误: 缺少授权码!");
         setError("缺少授权码");
         setIsProcessing(false);
         return;
@@ -36,6 +39,8 @@ function WechatCallbackContent() {
         const apiEndpoint = source === "app" ? "/api/auth/wechat/app" : "/api/auth/wechat";
         console.log("[CALLBACK PAGE] 选择的API端点:", apiEndpoint);
         console.log("[CALLBACK PAGE] 准备发送请求...");
+
+        alert(`[调试] 准备调用API:\n${apiEndpoint}`);
 
         const response = await fetch(apiEndpoint, {
           method: "POST",
