@@ -31,12 +31,27 @@ interface Advertisement {
 export function BannerAd({ onUpgrade, position = 'bottom' }: BannerAdProps) {
   const t = useT()
   const isIOSApp = useIsIOSApp()
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(() => {
+    // 初始化时检查默认广告是否已关闭
+    const defaultClosed = sessionStorage.getItem("bannerAdClosed")
+    return defaultClosed !== "true"
+  })
   const [dynamicAd, setDynamicAd] = useState<Advertisement | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(() => {
+    // 如果广告已关闭，跳过加载状态
+    const defaultClosed = sessionStorage.getItem("bannerAdClosed")
+    return defaultClosed !== "true"
+  })
 
   // 加载动态广告
   useEffect(() => {
+    // 如果默认广告已关闭，跳过加载
+    const defaultClosed = sessionStorage.getItem("bannerAdClosed")
+    if (defaultClosed === "true") {
+      setIsLoading(false)
+      return
+    }
+
     const loadDynamicAd = async () => {
       try {
         console.log(`📢 [BannerAd] Loading ads for position: ${position}`)
@@ -47,12 +62,20 @@ export function BannerAd({ onUpgrade, position = 'bottom' }: BannerAdProps) {
           console.log(`✅ [BannerAd] Found dynamic ad:`, data.ads[0])
           setDynamicAd(data.ads[0])
 
+          // 检查该动态广告是否已关闭
+          const adClosed = sessionStorage.getItem(`adClosed_${data.ads[0].id}`)
+          if (adClosed === "true") {
+            setIsVisible(false)
+          }
+
           // 记录展示统计
-          fetch(`/api/ads/${data.ads[0].id}/track`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'impression' })
-          }).catch(err => console.warn('Failed to track impression:', err))
+          if (adClosed !== "true") {
+            fetch(`/api/ads/${data.ads[0].id}/track`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'impression' })
+            }).catch(err => console.warn('Failed to track impression:', err))
+          }
         } else {
           console.log(`ℹ️ [BannerAd] No dynamic ads found, using default`)
           setDynamicAd(null)
@@ -68,25 +91,12 @@ export function BannerAd({ onUpgrade, position = 'bottom' }: BannerAdProps) {
     loadDynamicAd()
   }, [position])
 
-  // 检查 localStorage 中是否已关闭广告
-  useEffect(() => {
-    // 如果是动态广告，检查该广告是否被关闭
-    const storageKey = dynamicAd
-      ? `adClosed_${dynamicAd.id}`
-      : "bannerAdClosed"
-
-    const bannerClosed = localStorage.getItem(storageKey)
-    if (bannerClosed === "true") {
-      setIsVisible(false)
-    }
-  }, [dynamicAd])
-
   const handleClose = () => {
     setIsVisible(false)
     const storageKey = dynamicAd
       ? `adClosed_${dynamicAd.id}`
       : "bannerAdClosed"
-    localStorage.setItem(storageKey, "true")
+    sessionStorage.setItem(storageKey, "true")
   }
 
   const handleAdClick = async () => {
@@ -108,17 +118,8 @@ export function BannerAd({ onUpgrade, position = 'bottom' }: BannerAdProps) {
     }
   }
 
-  // 加载中显示骨架屏
-  if (isLoading) {
-    return (
-      <Card className="relative mb-8 overflow-hidden">
-        <div className="h-[200px] bg-neutral-200 dark:bg-neutral-800 animate-pulse" />
-      </Card>
-    )
-  }
-
-  // 已关闭不显示
-  if (!isVisible) {
+  // 已关闭或加载中不显示（避免闪烁）
+  if (!isVisible || isLoading) {
     return null
   }
 
