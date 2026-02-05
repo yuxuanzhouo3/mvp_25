@@ -138,8 +138,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 初始化时检查认证状态
   useEffect(() => {
+    // 检查 URL 中是否有小程序传来的 token
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+      const openid = urlParams.get("openid");
+      const expiresIn = urlParams.get("expiresIn");
+      const mpNickName = urlParams.get("mpNickName");
+      const mpAvatarUrl = urlParams.get("mpAvatarUrl");
+
+      if (token) {
+        console.log("[AUTH PROVIDER] 检测到小程序传来的 token");
+
+        // 保存 token 到 localStorage
+        const expiresInSeconds = expiresIn ? parseInt(expiresIn) : 3600;
+        saveTokens(token, token, expiresInSeconds); // 使用同一个 token 作为 refreshToken
+
+        // 如果有用户信息，也保存
+        if (mpNickName || mpAvatarUrl) {
+          const userData: User = {
+            id: openid ?? "",
+            email: `miniprogram_${openid ?? "unknown"}@local.wechat`,
+            name: mpNickName ?? "微信用户",
+            avatar: mpAvatarUrl ?? undefined,
+          };
+          saveUser(userData);
+        }
+
+        // 清除 URL 参数并重新加载
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, "", cleanUrl);
+
+        console.log("[AUTH PROVIDER] Token 已保存，准备获取用户信息");
+      }
+    }
+
     fetchCurrentUser();
-  }, [fetchCurrentUser]);
+  }, [fetchCurrentUser, saveTokens, saveUser]);
 
   // 手动刷新用户信息（支付成功后调用）
   const refetchUser = useCallback(async () => {
