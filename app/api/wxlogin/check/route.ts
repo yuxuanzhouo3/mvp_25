@@ -13,14 +13,22 @@ const checkSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("[wxlogin/check] ========== Request Start ==========");
+    console.log("[wxlogin/check] NEXT_PUBLIC_DEPLOYMENT_REGION:", process.env.NEXT_PUBLIC_DEPLOYMENT_REGION);
+    console.log("[wxlogin/check] isChinaRegion():", isChinaRegion());
+
     const body = await request.json();
+    console.log("[wxlogin/check] Request body received:", { hasCode: !!body.code });
+
     const clientIP =
       request.headers.get("x-forwarded-for") ||
       request.headers.get("x-real-ip") ||
       "unknown";
+    console.log("[wxlogin/check] Client IP:", clientIP);
 
     const validationResult = checkSchema.safeParse(body);
     if (!validationResult.success) {
+      console.error("[wxlogin/check] Validation failed:", validationResult.error.errors);
       return NextResponse.json(
         {
           success: false,
@@ -32,8 +40,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { code } = validationResult.data;
+    console.log("[wxlogin/check] Code validated successfully");
 
     if (!isChinaRegion()) {
+      console.error("[wxlogin/check] Region check failed - not China region");
       return NextResponse.json(
         {
           success: false,
@@ -43,11 +53,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    console.log("[wxlogin/check] Region check passed - China region confirmed");
 
     const appId = process.env.WECHAT_MINIPROGRAM_APPID;
     const appSecret = process.env.WECHAT_MINIPROGRAM_SECRET;
+    console.log("[wxlogin/check] Config check:", {
+      hasAppId: !!appId,
+      appIdPrefix: appId ? appId.substring(0, 6) : "none",
+      hasAppSecret: !!appSecret
+    });
 
     if (!appId || !appSecret) {
+      console.error("[wxlogin/check] Missing WeChat configuration");
       return NextResponse.json(
         {
           success: false,
@@ -58,6 +75,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log("[wxlogin/check] Calling WeChat jscode2session API...");
     logInfo("WeChat check: exchanging code for session", { code });
 
     const response = await fetch(
@@ -65,8 +83,15 @@ export async function POST(request: NextRequest) {
     );
 
     const data = await response.json();
+    console.log("[wxlogin/check] WeChat API response:", {
+      hasError: !!data.errcode,
+      errcode: data.errcode,
+      errmsg: data.errmsg,
+      hasOpenid: !!data.openid
+    });
 
     if (data.errcode) {
+      console.error("[wxlogin/check] WeChat API error:", data.errcode, data.errmsg);
       logSecurityEvent("wxlogin_check_failed", undefined, clientIP, {
         errcode: data.errcode,
         errmsg: data.errmsg,
@@ -84,6 +109,7 @@ export async function POST(request: NextRequest) {
 
     const openid = data.openid;
     const sessionKey = data.session_key;
+    console.log("[wxlogin/check] Got openid successfully");
 
     logInfo("WeChat check: got openid", { openid });
 
@@ -147,7 +173,7 @@ export async function POST(request: NextRequest) {
             }
           );
 
-          const refreshTokenResult = await createRefreshToken({
+          await createRefreshToken({
             userId: existingUser._id,
             email: existingUser.email,
             deviceInfo: "wechat-miniprogram",
