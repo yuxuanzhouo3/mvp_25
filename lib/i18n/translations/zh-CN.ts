@@ -198,6 +198,10 @@ export const zhCN = {
     minutes: "分钟",
     questions: "题",
     aiGreeting: "你好！我是 AI 备考规划师。请告诉我你想练习什么科目的题目？",
+    aiThinking: "AI 正在思考...",
+    thinking: "正在思考...",
+    generatingQuestions: "正在生成题目...",
+    preparingQuestionBank: "AI 正在根据考试大纲为你准备专属题库",
   },
 
   // 考试设置页面
@@ -276,6 +280,11 @@ export const zhCN = {
     extractedContent: "📊 已提取 {wordCount} 字内容",
     aiGeneratingFromDoc: "🤖 AI 正在基于文档生成 {count} 道精选题目...",
     processingFailed: "⚠️ 处理失败，请重新上传文件",
+    searchingMaterials: "🔍 正在搜索「{examName}」相关资料...",
+    connectedToKnowledge: "📡 已连接到知识库...",
+    foundSyllabus: "✨ 发现「{year}年{examName}考试大纲」",
+    foundPastPapers: "📄 找到「{examName}历年真题解析」",
+    readingDocuments: "📚 正在阅读 {count} 篇相关文档...",
   },
 
   // 错题本页面
@@ -785,6 +794,24 @@ export const zhCN = {
     deleted: "删除成功",
     copied: "已复制到剪贴板",
     sent: "发送成功",
+  },
+
+  // 微信认证
+  wechatAuth: {
+    title: "微信登录中",
+    processing: "正在处理微信授权...",
+    loading: "正在加载...",
+  },
+
+  // 支付宝支付
+  alipayPayment: {
+    redirecting: "正在跳转...",
+    redirectingToAlipay: "正在跳转到支付宝...",
+  },
+
+  // 隐私政策
+  privacy: {
+    complianceNotice: "更详细的《个人信息保护法》合规版本正在制定中，完整内容即将上线。",
   },
 }
 

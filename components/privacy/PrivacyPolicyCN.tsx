@@ -99,7 +99,7 @@ export function PrivacyPolicyCN() {
           <strong>提示：</strong>
         </p>
         <p className="text-sm text-muted-foreground">
-          更详细的《个人信息保护法》合规版本正在制定中，完整内容即将上线。
+          {t.privacy.complianceNotice}
           敬请期待完整版的隐私政策，其中将包含详细的数据处理活动说明、跨境传输规则、敏感个人信息处理规定等内容。
         </p>
       </div>

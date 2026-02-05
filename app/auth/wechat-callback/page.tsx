@@ -4,12 +4,14 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 function WechatCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
+  const t = useT();
 
   useEffect(() => {
     const processWechatLogin = async () => {
@@ -106,11 +108,11 @@ function WechatCallbackContent() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
-        <CardTitle className="text-center">微信登录中</CardTitle>
+        <CardTitle className="text-center">{t.wechatAuth.title}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center space-y-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground">正在处理微信授权...</p>
+        <p className="text-muted-foreground">{t.wechatAuth.processing}</p>
       </CardContent>
     </Card>
   );
@@ -122,11 +124,11 @@ export default function WechatCallbackPage() {
       <Suspense fallback={
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-center">微信登录中</CardTitle>
+            <CardTitle className="text-center">{t.wechatAuth.title}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">正在加载...</p>
+            <p className="text-muted-foreground">{t.wechatAuth.loading}</p>
           </CardContent>
         </Card>
       }>

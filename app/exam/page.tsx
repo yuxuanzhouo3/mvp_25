@@ -197,11 +197,11 @@ function ExamSetupContent() {
     const simulateSearchLogs = async () => {
       const year = new Date().getFullYear()
       const searchLogs = [
-        `🔍 正在搜索「${examName}」相关资料...`,
-        `📡 已连接到知识库...`,
-        `✨ 发现「${year}年${examName}考试大纲」`,
-        `📄 找到「${examName}历年真题解析」`,
-        `📚 正在阅读 3 篇相关文档...`,
+        t.examSetup.searchingMaterials.replace('{examName}', examName),
+        t.examSetup.connectedToKnowledge,
+        t.examSetup.foundSyllabus.replace('{year}', year.toString()).replace('{examName}', examName),
+        t.examSetup.foundPastPapers.replace('{examName}', examName),
+        t.examSetup.readingDocuments.replace('{count}', '3'),
       ]
 
       for (let i = 0; i < searchLogs.length; i++) {
@@ -213,7 +213,7 @@ function ExamSetupContent() {
 
     try {
       // 步骤1: 开始搜索（同时显示模拟日志）
-      setProcessingSteps([`🌐 正在联网搜索「${examName}」考试大纲...`])
+      setProcessingSteps([t.examSetup.searchingExamSyllabus.replace('{examName}', examName)])
       setProcessingProgress(5)
 
       // 并行执行：真实搜索 + 模拟日志动画
@@ -230,7 +230,7 @@ function ExamSetupContent() {
       ])
 
       // 步骤2: 解析搜索结果
-      setProcessingSteps(prev => [...prev, '🔎 正在解析搜索结果...'])
+      setProcessingSteps(prev => [...prev, t.examSetup.parsingSearchResults])
       setProcessingProgress(30)
       await new Promise(resolve => setTimeout(resolve, 300))
 
@@ -244,12 +244,12 @@ function ExamSetupContent() {
         // 显示搜索到的章节信息
         if (syllabusInfo?.syllabus?.length > 0) {
           const chapterCount = syllabusInfo.syllabus.length
-          setProcessingSteps(prev => [...prev, `📖 已获取 ${chapterCount} 个考纲章节`])
+          setProcessingSteps(prev => [...prev, t.examSetup.obtainedChapters.replace('{count}', chapterCount.toString())])
           await new Promise(resolve => setTimeout(resolve, 400))
         }
 
         if (syllabusInfo?.examInfo?.name) {
-          setProcessingSteps(prev => [...prev, `✅ 成功解析「${syllabusInfo.examInfo.name}」`])
+          setProcessingSteps(prev => [...prev, t.examSetup.successfullyParsed.replace('{name}', syllabusInfo.examInfo.name)])
           await new Promise(resolve => setTimeout(resolve, 300))
         }
       }
@@ -257,7 +257,7 @@ function ExamSetupContent() {
       setProcessingProgress(40)
 
       // 步骤3: 调用 AI 生成题目（核心步骤）
-      setProcessingSteps(prev => [...prev, `🤖 AI 正在生成 ${questionCount} 道精选题目...`])
+      setProcessingSteps(prev => [...prev, t.examSetup.aiGeneratingQuestions.replace('{count}', questionCount.toString())])
       setProcessingProgress(45)
 
       // 模拟出题进度
@@ -296,11 +296,11 @@ function ExamSetupContent() {
         throw new Error('AI 返回的题目为空')
       }
 
-      setProcessingSteps(prev => [...prev, `📝 已生成 ${generateData.questions.length} 道题目`])
+      setProcessingSteps(prev => [...prev, t.examSetup.generatedQuestions.replace('{count}', generateData.questions.length.toString())])
       await new Promise(resolve => setTimeout(resolve, 300))
 
       // 步骤4: 格式化并保存题目
-      setProcessingSteps(prev => [...prev, '⚡ 正在优化题目质量...'])
+      setProcessingSteps(prev => [...prev, t.examSetup.optimizingQuestions])
       setProcessingProgress(85)
 
       // 转换题目格式
@@ -334,7 +334,7 @@ function ExamSetupContent() {
       localStorage.setItem('generatedExamName', examName)
 
       // 步骤5: 完成
-      setProcessingSteps(prev => [...prev, `🎉 题库生成完成！共 ${formattedQuestions.length} 道精选题目`])
+      setProcessingSteps(prev => [...prev, t.examSetup.generationCompleteWithCount.replace('{count}', formattedQuestions.length.toString())])
       setProcessingProgress(100)
 
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -345,7 +345,7 @@ function ExamSetupContent() {
       setSearchError(error instanceof Error ? error.message : '联网搜索出题失败，请稍后重试')
 
       // 搜索失败，返回上一步让用户重试
-      setProcessingSteps(prev => [...prev, '⚠️ 出题失败，请重试'])
+      setProcessingSteps(prev => [...prev, t.examSetup.generationFailed])
       setProcessingProgress(100)
 
       await new Promise(resolve => setTimeout(resolve, 1500))
@@ -371,7 +371,7 @@ function ExamSetupContent() {
 
     try {
       // 步骤1: 解析文件
-      setProcessingSteps([`📄 正在解析「${uploadedFile.name}」...`])
+      setProcessingSteps([t.examSetup.parsingDocument.replace('{fileName}', uploadedFile.name)])
       setProcessingProgress(10)
       await new Promise(resolve => setTimeout(resolve, 300))
 
@@ -381,22 +381,22 @@ function ExamSetupContent() {
         throw new Error(parseResult.error || '文件解析失败')
       }
 
-      setProcessingSteps(prev => [...prev, `✅ 文档解析成功`])
+      setProcessingSteps(prev => [...prev, t.examSetup.documentParsedSuccess])
       setProcessingProgress(25)
       await new Promise(resolve => setTimeout(resolve, 300))
 
       // 步骤2: 提取知识点
-      setProcessingSteps(prev => [...prev, '🔍 正在提取核心知识点...'])
+      setProcessingSteps(prev => [...prev, t.examSetup.extractingKnowledge])
       setProcessingProgress(35)
 
       // 显示文档内容摘要
       const textLength = parseResult.text?.length || 0
       const wordCount = Math.floor(textLength / 2)
-      setProcessingSteps(prev => [...prev, `📊 已提取 ${wordCount > 1000 ? Math.floor(wordCount / 1000) + 'k+' : wordCount} 字内容`])
+      setProcessingSteps(prev => [...prev, t.examSetup.extractedContent.replace('{wordCount}', wordCount > 1000 ? Math.floor(wordCount / 1000) + 'k+' : wordCount.toString())])
       await new Promise(resolve => setTimeout(resolve, 400))
 
       // 步骤3: 调用 AI 生成题目
-      setProcessingSteps(prev => [...prev, `🤖 AI 正在生成 ${questionCount} 道精选题目...`])
+      setProcessingSteps(prev => [...prev, t.examSetup.aiGeneratingFromDoc.replace('{count}', questionCount.toString())])
       setProcessingProgress(50)
 
       // 模拟出题进度
@@ -442,12 +442,12 @@ function ExamSetupContent() {
         throw new Error(data.error || 'AI 返回的题目为空，请检查 API 配置')
       }
 
-      setProcessingSteps(prev => [...prev, `📝 已生成 ${data.questions.length} 道题目`])
+      setProcessingSteps(prev => [...prev, t.examSetup.generatedQuestions.replace('{count}', data.questions.length.toString())])
       setProcessingProgress(80)
       await new Promise(resolve => setTimeout(resolve, 300))
 
       // 步骤4: 保存题目
-      setProcessingSteps(prev => [...prev, '⚡ 正在优化题目质量...'])
+      setProcessingSteps(prev => [...prev, t.examSetup.optimizingQuestions])
       setProcessingProgress(90)
 
       // 保存生成的题目到 localStorage
@@ -458,7 +458,7 @@ function ExamSetupContent() {
       await new Promise(resolve => setTimeout(resolve, 400))
 
       // 步骤5: 完成
-      setProcessingSteps(prev => [...prev, `🎉 题库生成完成！共 ${data.questions.length} 道精选题目`])
+      setProcessingSteps(prev => [...prev, t.examSetup.generationCompleteWithCount.replace('{count}', data.questions.length.toString())])
       setProcessingProgress(100)
 
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -470,7 +470,7 @@ function ExamSetupContent() {
       setSearchError(errorMessage)
 
       // 文件解析失败，返回上一步让用户重新上传
-      setProcessingSteps(prev => [...prev, '⚠️ 处理失败，请重新上传文件'])
+      setProcessingSteps(prev => [...prev, t.examSetup.processingFailed])
       setProcessingProgress(100)
 
       await new Promise(resolve => setTimeout(resolve, 1500))
@@ -667,7 +667,7 @@ function ExamSetupContent() {
     const examType = getExamType(name)
 
     try {
-      setProcessingSteps([`🌐 正在联网搜索「${name}」考试大纲...`])
+      setProcessingSteps([t.examSetup.searchingExamSyllabus.replace('{examName}', name)])
       setProcessingProgress(5)
 
       const searchResponse = await fetch('/api/exam/search-syllabus', {
@@ -691,7 +691,7 @@ function ExamSetupContent() {
       }
 
       setProcessingProgress(40)
-      setProcessingSteps(prev => [...prev, `🤖 AI 正在生成 ${count} 道精选题目...`])
+      setProcessingSteps(prev => [...prev, t.examSetup.aiGeneratingQuestions.replace('{count}', count.toString())])
 
       const generateResponse = await fetch('/api/exam/generate-questions', {
         method: 'POST',
@@ -765,7 +765,7 @@ function ExamSetupContent() {
     localStorage.removeItem('examSyllabus')
 
     try {
-      setProcessingSteps([`🤖 AI 正在基于文档生成 ${count} 道精选题目...`])
+      setProcessingSteps([t.examSetup.aiGeneratingFromDoc.replace('{count}', count.toString())])
       setProcessingProgress(20)
 
       const response = await fetch('/api/exam/generate-from-document', {

@@ -101,7 +101,7 @@ export function AlipayPayment({
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                正在跳转...
+                {t.alipayPayment.redirecting}
               </>
             ) : (
               <>
@@ -114,7 +114,7 @@ export function AlipayPayment({
           <div className="text-center space-y-2">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-500" />
             <p className="text-sm text-muted-foreground">
-              正在跳转到支付宝...
+              {t.alipayPayment.redirectingToAlipay}
             </p>
             <p className="text-xs text-muted-foreground">
               如果没有自动跳转，请点击下方按钮

@@ -144,7 +144,7 @@ export function AiCoachModal({
               <div className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl px-4 py-3 text-neutral-500 dark:text-neutral-400">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 animate-pulse" />
-                  正在思考...
+                  {t.exam.thinking}
                 </div>
               </div>
             </div>

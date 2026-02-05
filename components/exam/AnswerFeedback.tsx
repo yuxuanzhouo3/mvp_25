@@ -53,6 +53,8 @@ export function AnswerFeedback({
 }: AnswerFeedbackProps) {
   // 记录是否已添加到错题本
   const [isAddedToWrongBook, setIsAddedToWrongBook] = useState(false)
+  // 记录解析是否展开
+  const [isExplanationExpanded, setIsExplanationExpanded] = useState(false)
 
   const questionType = question.type || 'single'
 
@@ -60,6 +62,7 @@ export function AnswerFeedback({
   useEffect(() => {
     if (!isOpen) {
       setIsAddedToWrongBook(false)
+      setIsExplanationExpanded(false)
     }
   }, [isOpen, question.id])
 
@@ -138,8 +141,8 @@ export function AnswerFeedback({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <Card className={`w-full max-w-lg border-2 ${
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
+      <Card className={`w-full max-w-lg my-8 border-2 ${
         isCorrect
           ? 'bg-white dark:bg-neutral-950 border-emerald-500/50'
           : 'bg-white dark:bg-neutral-950 border-red-500/50'
@@ -206,11 +209,24 @@ export function AnswerFeedback({
               <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">解析</span>
             </div>
-            <div className="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-4">
-              <div className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+            <div className="bg-neutral-50 dark:bg-neutral-900 rounded-xl p-4 relative">
+              <div
+                className={`text-neutral-700 dark:text-neutral-300 leading-relaxed transition-all duration-300 ${
+                  isExplanationExpanded ? 'max-h-[400px] overflow-y-auto' : 'max-h-[200px] overflow-hidden'
+                }`}
+              >
                 <MathBlock>{question.explanation}</MathBlock>
               </div>
+              {!isExplanationExpanded && (
+                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-neutral-50 dark:from-neutral-900 to-transparent pointer-events-none" />
+              )}
             </div>
+            <button
+              onClick={() => setIsExplanationExpanded(!isExplanationExpanded)}
+              className="mt-2 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition"
+            >
+              {isExplanationExpanded ? '收起解析 ▲' : '展开完整解析 ▼'}
+            </button>
           </div>
 
           {/* 知识点提示 */}

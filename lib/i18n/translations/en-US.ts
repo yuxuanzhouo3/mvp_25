@@ -200,6 +200,10 @@ export const enUS: Translations = {
     minutes: "minutes",
     questions: "questions",
     aiGreeting: "Hello! I'm the AI Exam Preparation Planner. Please tell me what subject questions you want to practice?",
+    aiThinking: "AI is thinking...",
+    thinking: "Thinking...",
+    generatingQuestions: "Generating questions...",
+    preparingQuestionBank: "AI is preparing your personalized question bank based on the exam syllabus",
   },
 
   // Exam Setup Page
@@ -277,6 +281,11 @@ export const enUS: Translations = {
     extractedContent: "📊 Extracted {wordCount} words of content",
     aiGeneratingFromDoc: "🤖 AI is generating {count} curated questions from document...",
     processingFailed: "⚠️ Processing failed, please re-upload file",
+    searchingMaterials: "🔍 Searching for '{examName}' materials...",
+    connectedToKnowledge: "📡 Connected to knowledge base...",
+    foundSyllabus: "✨ Found '{year} {examName} Exam Syllabus'",
+    foundPastPapers: "📄 Found '{examName} Past Papers Analysis'",
+    readingDocuments: "📚 Reading {count} related documents...",
   },
 
   // Wrong Book Page
@@ -785,5 +794,23 @@ export const enUS: Translations = {
     deleted: "Deleted successfully",
     copied: "Copied to clipboard",
     sent: "Sent successfully",
+  },
+
+  // WeChat authentication
+  wechatAuth: {
+    title: "WeChat Login",
+    processing: "Processing WeChat authorization...",
+    loading: "Loading...",
+  },
+
+  // Alipay payment
+  alipayPayment: {
+    redirecting: "Redirecting...",
+    redirectingToAlipay: "Redirecting to Alipay...",
+  },
+
+  // Privacy policy
+  privacy: {
+    complianceNotice: "A more detailed version compliant with the Personal Information Protection Law is being developed and will be available soon.",
   },
 }

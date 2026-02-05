@@ -246,7 +246,7 @@ export function DocumentAiAgent({ documentContent, documentName, onStartGenerati
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
-                <span className="text-sm">AI 正在思考...</span>
+                <span className="text-sm">{t.exam.aiThinking}</span>
               </div>
             </div>
           )}

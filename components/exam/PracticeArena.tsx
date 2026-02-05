@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, BookMarked, Pause, Play, AlertTriangle, Loader2, RefreshCw, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
+import { useT } from "@/lib/i18n"
 import { RankPanel } from "./RankPanel"
 import { QuestionCard } from "./QuestionCard"
 import { AnswerFeedback } from "./AnswerFeedback"
@@ -59,6 +60,7 @@ interface PracticeArenaProps {
 
 export function PracticeArena({ examName = "考研数学" }: PracticeArenaProps) {
   const router = useRouter()
+  const t = useT()
 
   // 使用 ref 追踪是否已初始化
   const isInitialized = useRef(false)
@@ -587,8 +589,8 @@ export function PracticeArena({ examName = "考研数学" }: PracticeArenaProps)
               <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                 <Loader2 className="w-8 h-8 text-white animate-spin" />
               </div>
-              <h2 className="text-xl font-bold text-neutral-950 dark:text-white mb-2">正在生成题目...</h2>
-              <p className="text-neutral-500 dark:text-neutral-400 mb-4">AI 正在根据考试大纲为你准备专属题库</p>
+              <h2 className="text-xl font-bold text-neutral-950 dark:text-white mb-2">{t.exam.generatingQuestions}</h2>
+              <p className="text-neutral-500 dark:text-neutral-400 mb-4">{t.exam.preparingQuestionBank}</p>
               <Progress value={loadingProgress} className="h-2 mb-2" />
               <p className="text-sm text-neutral-500">{loadingProgress}%</p>
             </div>
