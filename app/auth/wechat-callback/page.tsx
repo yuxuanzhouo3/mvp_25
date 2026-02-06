@@ -61,21 +61,29 @@ function WechatCallbackContent() {
           return;
         }
 
-        // 保存 tokens
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "auth_tokens",
-            JSON.stringify({
-              accessToken: data.accessToken,
-              refreshToken: data.refreshToken,
-              expiresAt: Date.now() + (data.tokenMeta?.accessTokenExpiresIn || 3600) * 1000,
-            })
-          );
-          localStorage.setItem("auth_user", JSON.stringify(data.user));
-        }
+        // 构建带认证参数的重定向 URL（处理已有查询参数的情况）
+        try {
+          const redirectUrl = new URL(redirect, window.location.origin);
+          redirectUrl.searchParams.set('token', data.accessToken);
+          redirectUrl.searchParams.set('openid', data.user.id);
+          redirectUrl.searchParams.set('expiresIn', String(data.tokenMeta?.accessTokenExpiresIn || 3600));
+          if (data.user.name) redirectUrl.searchParams.set('mpNickName', data.user.name);
+          if (data.user.avatar) redirectUrl.searchParams.set('mpAvatarUrl', data.user.avatar);
 
-        // 使用硬跳转确保 Cookie 已生效（解决 Race Condition）
-        window.location.href = redirect;
+          window.location.href = redirectUrl.toString();
+        } catch (err) {
+          // Fallback: 如果 redirect 不是有效 URL，使用简单拼接
+          const params = new URLSearchParams({
+            token: data.accessToken,
+            openid: data.user.id,
+            expiresIn: String(data.tokenMeta?.accessTokenExpiresIn || 3600),
+          });
+          if (data.user.name) params.set('mpNickName', data.user.name);
+          if (data.user.avatar) params.set('mpAvatarUrl', data.user.avatar);
+
+          const separator = redirect.includes('?') ? '&' : '?';
+          window.location.href = `${redirect}${separator}${params.toString()}`;
+        }
       } catch (err: any) {
         console.error("WeChat login error:", err);
         setError(err.message || "微信登录失败，请重试");
