@@ -12,9 +12,10 @@ import { BannerAd } from "@/components/banner-ad"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Crown, BookMarked, TrendingUp, Brain, Loader2, Home, User, CreditCard, Receipt, Settings, LogOut } from "lucide-react"
+import { Crown, BookMarked, TrendingUp, Brain, Loader2, Home, User, CreditCard, Receipt, Settings, LogOut, PlayCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AiCoachModal } from "@/components/ai-coach-modal"
+import { RunbookVideoModal } from "@/components/runbook-video-modal"
 import { isChinaRegion } from "@/lib/config/region"
 import { useAuth as useAuthCN } from "@/components/auth/auth-provider"
 import { useUserIntl } from "@/components/user-context-intl"
@@ -64,6 +65,7 @@ export default function HomePage() {
   })
   const [showShareModal, setShowShareModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showRunbookVideoModal, setShowRunbookVideoModal] = useState(false)
 
   const [aiCoachSessions, setAiCoachSessions] = useState(0) // 免费用户3次体验
   const [showAiCoach, setShowAiCoach] = useState(false)
@@ -187,6 +189,14 @@ export default function HomePage() {
                 <ModeToggle />
                 <Button
                   variant="outline"
+                  onClick={() => setShowRunbookVideoModal(true)}
+                  className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                >
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  操作演示
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => router.push('/exam/review')}
                   className="border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                 >
@@ -274,6 +284,14 @@ export default function HomePage() {
                       {t.home.upgradePro}
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowRunbookVideoModal(true)}
+                    className="w-full justify-start min-h-[44px]"
+                  >
+                    <PlayCircle className="w-4 h-4 mr-2" />
+                    操作演示
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={() => router.push('/exam/review')}
@@ -404,6 +422,10 @@ export default function HomePage() {
         userSkills={userSkills}
         onComplete={handleAiCoachComplete}
         sessionsLeft={userProfile.isPremium ? -1 : 3 - aiCoachSessions}
+      />
+      <RunbookVideoModal
+        isOpen={showRunbookVideoModal}
+        onClose={() => setShowRunbookVideoModal(false)}
       />
     </div>
   )
