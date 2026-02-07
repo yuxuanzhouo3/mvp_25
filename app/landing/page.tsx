@@ -83,7 +83,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-neutral-200 dark:border-neutral-800 mt-20">
         <div className="container mx-auto px-4 py-8 text-center text-neutral-500 dark:text-neutral-500">
-          <p>© 2026 晨佑AI教学 | 备案号：待填写</p>
+          <p>© 2026 晨佑AI教学 | <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:underline">粤ICP备2024281756号-3</a></p>
         </div>
       </footer>
     </div>

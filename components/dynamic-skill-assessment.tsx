@@ -147,6 +147,25 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
     router.push('/assessment/targeted-quiz')
   }
 
+  // 跳过评估 - 使用默认值并跳转到最后一页
+  const handleSkipAssessment = () => {
+    if (!currentSubject || dimensions.length === 0) return
+
+    // 填充所有维度为默认分数 5（中等水平）
+    const defaultRatings: Record<string, number> = {}
+    dimensions.forEach(dim => {
+      defaultRatings[dim.id] = 5
+    })
+
+    setRatings(defaultRatings)
+    setCurrentPage(totalPages)
+
+    // 触发完成回调
+    if (onComplete && currentSubject) {
+      onComplete(currentSubject, defaultRatings)
+    }
+  }
+
   const currentPageDimensions = getCurrentPageDimensions()
 
   return (
@@ -292,6 +311,17 @@ export function DynamicSkillAssessment({ onComplete }: DynamicSkillAssessmentPro
                 {t.assessment.rateSkills} · {t.assessment.pageOf.replace("{current}", String(currentPage)).replace("{total}", String(totalPages))}
               </p>
             </div>
+            <button
+              onClick={handleSkipAssessment}
+              className="px-4 py-2 text-sm font-medium text-neutral-600 dark:text-neutral-400
+                         hover:text-indigo-600 dark:hover:text-indigo-400
+                         hover:bg-indigo-50 dark:hover:bg-indigo-950/30
+                         border border-neutral-200 dark:border-neutral-700
+                         rounded-lg transition-all duration-200"
+              title={t.assessment.skipAssessmentDesc}
+            >
+              {t.assessment.skipAssessment}
+            </button>
           </div>
 
           <div className="space-y-8">

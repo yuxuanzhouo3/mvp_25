@@ -600,6 +600,8 @@ export const enUS: Translations = {
       advanced: "Advanced - Can handle complex problems",
       expert: "Expert - Master level",
     },
+    skipAssessment: "Skip Assessment",
+    skipAssessmentDesc: "Use default values to start quickly",
   },
 
   // Search Progress

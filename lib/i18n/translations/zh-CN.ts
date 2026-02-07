@@ -600,6 +600,8 @@ export const zhCN = {
       advanced: "熟练阶段 - 可以处理复杂问题",
       expert: "精通阶段 - 专家级别",
     },
+    skipAssessment: "跳过评估",
+    skipAssessmentDesc: "使用默认值快速开始",
   },
 
   // 搜索进度
