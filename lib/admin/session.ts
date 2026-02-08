@@ -28,9 +28,9 @@ const DEFAULT_SESSION_EXPIRY = 24 * 60 * 60;
 
 /**
  * Cookie 路径
- * 只在 /admin 路径下有效
+ * 设置为根路径,使其在整个域名下都有效(包括 /admin 和 /api 路径)
  */
-const COOKIE_PATH = "/admin";
+const COOKIE_PATH = "/";
 
 /**
  * 从环境变量获取会话密钥

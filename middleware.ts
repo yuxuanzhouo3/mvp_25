@@ -152,15 +152,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // =====================
-  // 请求体大小限制 (10MB) - 仅 API 路由
+  // 请求体大小限制 (500MB) - 仅 API 路由
   // =====================
   if (pathname.startsWith("/api/") && request.method === "POST") {
     const contentLength = request.headers.get("content-length");
-    if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
+    if (contentLength && parseInt(contentLength) > 500 * 1024 * 1024) {
       return new NextResponse(
         JSON.stringify({
           error: "Request body too large",
-          message: "Maximum request size is 10MB",
+          message: "Maximum request size is 500MB",
         }),
         {
           status: 413,

@@ -214,16 +214,68 @@ export default function ReleasesManagementPage() {
     setCreating(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
-    const result = await createRelease(formData);
+    try {
+      const formData = new FormData(e.currentTarget);
+      const file = formData.get("file") as File;
+      const uploadTarget = (formData.get("uploadTarget") as string) || "both";
 
-    if (result.success) {
-      setDialogOpen(false);
-      loadReleases();
-    } else {
-      setError(result.error || "创建失败");
+      if (!file || file.size === 0) {
+        setError("请选择要上传的文件");
+        setCreating(false);
+        return;
+      }
+
+      const version = formData.get("version") as string;
+      const platform = formData.get("platform") as string;
+      const variant = formData.get("variant") as string;
+      const ext = file.name.split(".").pop();
+      const variantSuffix = variant ? `-${variant}` : "";
+      const fileName = `${platform}${variantSuffix}-${version}-${Date.now()}.${ext}`;
+
+      // 关键修复: 无论上传目标是什么,都先通过API路由上传文件
+      // 这样可以避免Next.js Server Actions的FormData大小限制
+      console.log("[handleCreate] 开始上传文件到API路由");
+
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      uploadFormData.append("fileName", fileName);
+
+      const uploadResponse = await fetch("/api/upload/release", {
+        method: "POST",
+        body: uploadFormData,
+      });
+
+      if (!uploadResponse.ok) {
+        const error = await uploadResponse.json();
+        setError(error.error || "文件上传失败");
+        setCreating(false);
+        return;
+      }
+
+      const uploadResult = await uploadResponse.json();
+      const cloudbaseFileId = uploadResult.fileID;
+      console.log("[handleCreate] 文件上传成功:", cloudbaseFileId);
+
+      // 移除文件,只传递fileID和其他元数据
+      formData.delete("file");
+      formData.append("cloudbaseFileId", cloudbaseFileId);
+      formData.append("fileName", fileName);
+      formData.append("fileSize", file.size.toString());
+
+      const result = await createRelease(formData);
+
+      if (result.success) {
+        setDialogOpen(false);
+        loadReleases();
+      } else {
+        setError(result.error || "创建失败");
+      }
+    } catch (err) {
+      console.error("[handleCreate] 错误:", err);
+      setError(err instanceof Error ? err.message : "创建失败");
+    } finally {
+      setCreating(false);
     }
-    setCreating(false);
   }
 
   // 更新发布版本

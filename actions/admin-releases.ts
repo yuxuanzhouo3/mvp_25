@@ -123,34 +123,46 @@ async function uploadToSupabase(
 }
 
 /**
- * 上传文件到 CloudBase Storage
+ * 上传文件到 CloudBase Storage - 使用API路由避免Server Actions限制
  */
 async function uploadToCloudBase(
   file: File,
   fileName: string
 ): Promise<string | null> {
   try {
-    const { app } = await getCloudBase();
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const cloudPath = `releases/${fileName}`;
-
-    console.log("CloudBase uploading to:", cloudPath);
-
-    const uploadResult = await app.uploadFile({
-      cloudPath,
-      fileContent: buffer,
-    });
-
-    if (!uploadResult.fileID) {
-      console.error("CloudBase upload failed: no fileID returned");
-      return null;
+    // 检查文件大小（最大500MB）
+    const MAX_FILE_SIZE = 500 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      console.error("File too large:", file.size);
+      throw new Error("文件太大，最大支持500MB");
     }
 
-    console.log("CloudBase upload success, fileID:", uploadResult.fileID);
-    return uploadResult.fileID;
+    console.log("CloudBase uploading via API:", {
+      fileSize: file.size,
+      fileName
+    });
+
+    // 使用API路由上传，避免Server Actions的FormData限制
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("fileName", fileName);
+
+    const response = await fetch("/api/upload/release", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "上传失败");
+    }
+
+    const result = await response.json();
+    console.log("CloudBase upload success:", result.fileID);
+    return result.fileID;
   } catch (err) {
     console.error("CloudBase upload exception:", err);
-    return null;
+    throw err;
   }
 }
 
@@ -161,47 +173,80 @@ export async function createRelease(
   formData: FormData
 ): Promise<CreateReleaseResult> {
   try {
+    console.log("[createRelease] 函数开始执行");
     await requireAdmin();
+    console.log("[createRelease] 权限验证通过");
 
+    console.log("[createRelease] 开始读取FormData");
     const version = formData.get("version") as string;
     const platform = formData.get("platform") as Platform;
     const variant = (formData.get("variant") as Variant) || undefined;
     const releaseNotes = formData.get("releaseNotes") as string;
     const isActive = formData.get("isActive") === "true";
     const isMandatory = formData.get("isMandatory") === "true";
-    const file = formData.get("file") as File;
     const uploadTarget = (formData.get("uploadTarget") as string) || "both";
+
+    // 关键修复: 文件已经通过API路由上传,这里只接收fileID和元数据
+    const cloudbaseFileId = formData.get("cloudbaseFileId") as string | null;
+    const fileName = formData.get("fileName") as string | null;
+    const fileSizeStr = formData.get("fileSize") as string | null;
+    const fileSize = fileSizeStr ? parseInt(fileSizeStr, 10) : 0;
+
+    console.log("[createRelease] FormData读取完成:", {
+      version,
+      platform,
+      variant,
+      uploadTarget,
+      hasCloudbaseFileId: !!cloudbaseFileId,
+      fileName,
+      fileSize
+    });
 
     if (!version || !platform) {
       return { success: false, error: "请填写必要字段" };
     }
 
-    if (!file || file.size === 0) {
-      return { success: false, error: "请上传安装包文件" };
+    if (!cloudbaseFileId) {
+      return { success: false, error: "文件上传失败,请重试" };
     }
 
-    // 生成唯一文件名（包含 variant）
-    const ext = file.name.split(".").pop();
-    const variantSuffix = variant ? `-${variant}` : "";
-    const fileName = `${platform}${variantSuffix}-${version}-${Date.now()}.${ext}`;
+    console.log("[createRelease] 验证通过，准备写入数据库");
 
-    // 根据选择上传到对应存储
+    // 文件已经上传到CloudBase,现在根据uploadTarget决定是否也需要上传到Supabase
     let supabaseUrl: string | null = null;
-    let cloudbaseUrl: string | null = null;
+    let cloudbaseUrl: string | null = cloudbaseFileId;
 
+    // 如果需要同时上传到Supabase,需要从CloudBase下载文件再上传
     if (uploadTarget === "both" || uploadTarget === "supabase") {
-      supabaseUrl = await uploadToSupabase(file, fileName);
-      if (!supabaseUrl && (uploadTarget === "supabase" || uploadTarget === "both")) {
-        return { success: false, error: "上传到 Supabase 失败" };
+      try {
+        // 从CloudBase获取文件
+        const { app } = await getCloudBase();
+        const downloadResult = await app.downloadFile({
+          fileID: cloudbaseFileId,
+        });
+
+        if (downloadResult.fileContent) {
+          // 创建File对象用于上传到Supabase
+          const buffer = Buffer.from(downloadResult.fileContent);
+          const blob = new Blob([buffer]);
+          const file = new File([blob], fileName || "release-file", {
+            type: "application/octet-stream",
+          });
+
+          supabaseUrl = await uploadToSupabase(file, fileName || `${platform}-${version}-${Date.now()}`);
+          if (!supabaseUrl && uploadTarget === "supabase") {
+            return { success: false, error: "上传到 Supabase 失败" };
+          }
+        }
+      } catch (err) {
+        console.error("[createRelease] Supabase上传失败:", err);
+        if (uploadTarget === "supabase") {
+          return { success: false, error: "上传到 Supabase 失败" };
+        }
       }
     }
 
-    if (uploadTarget === "both" || uploadTarget === "cloudbase") {
-      cloudbaseUrl = await uploadToCloudBase(file, fileName);
-      if (!cloudbaseUrl && uploadTarget === "cloudbase") {
-        return { success: false, error: "上传到 CloudBase 失败" };
-      }
-    }
+    console.log("[createRelease] 文件处理完成，准备写入数据库");
 
     // 生成 UUID
     const id = crypto.randomUUID();
@@ -217,7 +262,7 @@ export async function createRelease(
             platform,
             variant: variant || null,
             file_url: supabaseUrl,
-            file_size: file.size,
+            file_size: fileSize,
             release_notes: releaseNotes || null,
             is_active: isActive,
             is_mandatory: isMandatory,
@@ -246,7 +291,7 @@ export async function createRelease(
           platform,
           variant: variant || null,
           file_url: cloudbaseUrl,
-          file_size: file.size,
+          file_size: fileSize,
           release_notes: releaseNotes || null,
           is_active: isActive,
           is_mandatory: isMandatory,
@@ -293,7 +338,7 @@ export async function createRelease(
         platform,
         variant,
         file_url: supabaseUrl || cloudbaseUrl || "",
-        file_size: file.size,
+        file_size: fileSize,
         release_notes: releaseNotes || undefined,
         is_active: isActive,
         is_mandatory: isMandatory,
@@ -617,20 +662,14 @@ export async function deleteRelease(id: string): Promise<DeleteReleaseResult> {
       cloudbasePromise,
     ]);
 
-    // 至少一个数据库删除成功即可
-    const hasSupabaseSuccess = !supabaseResult.error;
-    const hasCloudBaseSuccess = !cloudbaseResult.error;
-
-    if (!hasSupabaseSuccess && !hasCloudBaseSuccess) {
-      console.error("Both databases failed to delete");
+    // 优先使用Supabase，如果Supabase删除失败，直接返回失败
+    if (supabaseResult.error) {
+      console.error("Supabase delete error:", supabaseResult.error);
       return { success: false, error: "删除失败" };
     }
 
-    if (!hasSupabaseSuccess) {
-      console.warn("Supabase delete warning:", supabaseResult.error);
-    }
-
-    if (!hasCloudBaseSuccess) {
+    // CloudBase删除失败只记录警告
+    if (cloudbaseResult.error) {
       console.warn("CloudBase delete warning:", cloudbaseResult.error);
     }
 
